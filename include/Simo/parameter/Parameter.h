@@ -1,0 +1,90 @@
+// Copyright 2026 Matteo Fusi and Contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef SIMO_PARAMETER_HH
+#define SIMO_PARAMETER_HH
+
+#include <Simo/compiler/BoostTypeIndexRuntimeCast.hh>
+#include <algorithm>
+#include <functional>
+#include <string>
+#include <utility>
+
+namespace Simo::Parameter {
+
+class Parameter {
+ public:
+  Parameter() = default;
+
+  virtual ~Parameter() = default;
+
+  BOOST_TYPE_INDEX_REGISTER_RUNTIME_CLASS()
+
+  [[nodiscard]] boost::typeindex::type_index type() const {
+    return boost::typeindex::type_id_runtime(*this);
+  }
+
+  [[nodiscard]] virtual bool validate() const = 0;
+
+  [[nodiscard]] virtual std::unique_ptr<Parameter> clone() const = 0;
+
+ protected:
+  explicit Parameter(const std::string_view name) : name_(name) {};
+
+  std::string name_;
+};
+
+template <typename T>
+class ParameterTyped : public Parameter {
+ public:
+  ~ParameterTyped() override = default;
+  BOOST_TYPE_INDEX_REGISTER_RUNTIME_CLASS(Parameter);
+
+  using Validator = std::function<bool(const T&)>;
+
+  ParameterTyped() = default;
+
+  explicit ParameterTyped(const T& value) : value_(value) {}
+
+  explicit ParameterTyped(const T&& value) : value_(value) {}
+
+  ParameterTyped& validator(Validator validator) {
+    validator_ = std::move(validator);
+    return *this;
+  }
+
+  ParameterTyped& value(const T& value) {
+    value_ = value;
+    return *this;
+  }
+
+  [[nodiscard]] T value() const { return value_; }
+
+  [[nodiscard]] bool validate() const override {
+    if (validator_ == nullptr) {
+      return true;
+    }
+    return validator_(value_);
+  }
+
+  [[nodiscard]] std::unique_ptr<Parameter> clone() const override {
+    return std::make_unique<ParameterTyped>(value_);
+  }
+
+ protected:
+  Validator validator_{};
+  T value_{};
+};
+}  // namespace Simo::Parameter
+#endif  // SIMO_PARAMETER_HH

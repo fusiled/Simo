@@ -1,0 +1,43 @@
+#  Copyright 2026 Matteo Fusi and Contributors
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+name: "Coverage with unit-tests"
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Debug
+jobs:
+  Configure-Build-and-Unit-Tests:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+    name: Build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: CMake configure
+        run: nix develop --command cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DENABLE_COVERAGE=ON
+      - name: CMake Build
+        run: nix develop --command cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j
+      - name: CMake Test
+        working-directory: ${{github.workspace}}/build
+        run: nix develop --command ctest -C ${{ env.BUILD_TYPE }}
+      - name: Verify minimum coverage
+        run: nix develop --command ${{github.workspace}}/support/scripts/verify-coverage.sh ${{github.workspace}}/build

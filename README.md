@@ -19,7 +19,7 @@ Build dependencies:
 [Boost.TypeIndex](https://www.boost.org/libs/type_index))
 - [Glaze](https://github.com/stephenberry/glaze)
 
-Runtime dependencies:
+Library usage dependencies (headers-only):
 - Boost ([Boost.TypeIndex](https://www.boost.org/libs/type_index))
 - [Glaze](https://github.com/stephenberry/glaze)
 

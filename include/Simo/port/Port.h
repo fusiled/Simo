@@ -24,6 +24,7 @@
 
 namespace Simo {
 
+/// Generic port. It offers the virtual method connect
 class SIMO_PUBLIC Port {
  public:
   virtual ~Port() = default;
@@ -31,8 +32,9 @@ class SIMO_PUBLIC Port {
 
   using TypeId = boost::typeindex::type_index;
 
+  /// Utility to the get type of class. Need the type at compile time
   template <typename Self>
-  TypeId get_type_id(this Self&) {
+  TypeId get_type_id(this Self& _) {
     return boost::typeindex::type_id<Self>();
   }
 
@@ -51,6 +53,10 @@ namespace Ports {
 template <typename Payload>
 class InPort;
 
+/// Templated port that can send payloads to an InPort of the same type
+///
+/// Present the payload to the connected port with send and clear that state
+/// with the clear method
 template <typename Payload>
 class SIMO_PUBLIC OutPort : public Port {
  public:
@@ -92,6 +98,10 @@ class SIMO_PUBLIC OutPort : public Port {
   PORT_STATE state_ = PORT_STATE::EMPTY;
 };
 
+/// Templated port that can received payloads from an OutPort of the same type
+///
+/// A payload can be extracted with the receive method. The peek method allows
+/// to look at the payload without extracting it.
 template <typename Payload>
 class SIMO_PUBLIC InPort : public Port {
  public:
@@ -148,12 +158,16 @@ bool InPort<Payload>::connect(Port* other) {
   return true;
 }
 
+/// Port that can send and receive payloads on separate channels.
+/// It can be connected to a BidirectionalPortTyped<InPayload,OutPayload> (note
+/// the types are inverted).
 template <typename OutPayload, typename InPayload>
 class SIMO_PUBLIC BidirectionalPortTyped : public Port {
  public:
   BOOST_TYPE_INDEX_REGISTER_RUNTIME_CLASS(Port)
   bool connect(Port* other) override;
 
+  /// Push a payload on the out port
   OutPort<OutPayload>::SEND_OUTCOME send_out(OutPayload&& payload) {
     return out_port.send(std::move(payload));
   }
@@ -162,8 +176,10 @@ class SIMO_PUBLIC BidirectionalPortTyped : public Port {
 
   void clear_in() { in_port.clear(); }
 
+  /// Extract the payload from the in port
   InPayload&& receive_in() { return in_port.receive(); }
 
+  /// Peek the payload from the in port
   InPayload* peek_in() { return in_port.peek(); }
 
  protected:

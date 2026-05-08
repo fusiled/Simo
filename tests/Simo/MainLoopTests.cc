@@ -17,10 +17,9 @@
 
 #include <boost/test/unit_test.hpp>
 
-
 class TestModule : public Simo::Module {
-  public:
-  bool initialize(Simo::Context& ctx, const Simo::Parameters &p) override {
+ public:
+  bool initialize(Simo::Context& ctx, const Simo::Parameters& p) override {
     if (!Module::initialize(ctx, p)) {
       return false;
     }
@@ -31,10 +30,9 @@ class TestModule : public Simo::Module {
   }
 
   Simo::Time period = Simo::Time::zero;
-  Simo::Statistics::Count *counter = nullptr;
+  Simo::Statistics::Count* counter = nullptr;
 
-protected:
-
+ protected:
   void update_state() {
     (*counter) += 1;
     sim_ctx().schedule_in(period, [this]() { update_state(); });
@@ -42,12 +40,11 @@ protected:
 };
 
 class TestParameters : public Simo::Parameters {
-
-  public:
-    [[nodiscard]] bool check() const override {
-      const auto *param = get<Simo::Time>("period");
-      return param != nullptr && param->value() > Simo::Time(1);
-    }
+ public:
+  [[nodiscard]] bool check() const override {
+    const auto* param = get<Simo::Time>("period");
+    return param != nullptr && param->value() > Simo::Time(1);
+  }
 };
 
 BOOST_AUTO_TEST_CASE(SimpleLoop) {
@@ -81,8 +78,8 @@ BOOST_AUTO_TEST_CASE(InitializationFailure) {
 
   TestParameters params;
   params.name("test");
-  // TestParameters expects period to be at least 2, so the context initialization
-  // will fail
+  // TestParameters expects period to be at least 2, so the context
+  // initialization will fail
   params.set<Time>("period", Time(1));
 
   TestModule test_module;

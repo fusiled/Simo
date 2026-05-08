@@ -4,8 +4,8 @@
 #include <ranges>
 #include <unordered_map>
 
-#include "Simo/core/internal/RadixHeap.h"
 #include "Simo/core/Time.h"
+#include "Simo/core/internal/RadixHeap.h"
 #include "Simo/module/Module.h"
 
 namespace Simo {

@@ -3,7 +3,6 @@
 
 #include "./collection/Collection.h"
 #include "./core/Context.h"
-#include "./core/Payload.h"
 #include "./core/Time.h"
 #include "./module/Module.h"
 #include "./parameter/Parameter.h"

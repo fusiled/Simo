@@ -26,7 +26,9 @@ class StatisticBase;
 }
 
 // TODO make it to return a list of errors
-bool Parameters::check() const { return true; }
+bool Parameters::check() const {
+  return trie.all([](const Parameter::Parameter& p) { return p.validate(); });
+}
 
 std::optional<Parameters> Parameters::get_subtree(
     const std::string& name) const {

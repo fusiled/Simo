@@ -25,6 +25,7 @@ namespace Simo {
 
 class Context;
 
+/// Collects parameters that are then passed to a Module instance
 class SIMO_PUBLIC Parameters {
  public:
   virtual ~Parameters() = default;
@@ -34,20 +35,34 @@ class SIMO_PUBLIC Parameters {
   void name(std::string_view name);
 
   // TODO make it to return a list of errors
+
+  /// Implement checks on the set of parameters
+  ///
+  /// The default behavior is that everything is fine
   [[nodiscard]] virtual bool check() const;
 
+  /// Create a new parameter with the given type and return a reference to it
   template <typename T>
   [[maybe_unused]]
   Parameter::ParameterTyped<T>& set(const std::string& name, const T& value) {
     return trie.add<T>(name, value);
   }
 
+  /// Get a parameters with the given name.
+  ///
+  /// nullptr is returned if the type does not match or there is no parameter
+  /// with this name
   template <typename T>
   [[nodiscard]] Parameter::ParameterTyped<T>* get(
       const std::string& name) const {
     return trie.find<T>(name);
   }
 
+  /// Get a set of parameters in a parameter subtree
+  ///
+  /// Parameters are organized in a tree-like structure (a trie), so it is
+  /// possible to fetch a part of if. Return std::nullopt if the name does not
+  /// match anything
   [[nodiscard]] std::optional<Parameters> get_subtree(
       const std::string& name) const;
 
@@ -56,8 +71,16 @@ class SIMO_PUBLIC Parameters {
   std::string name_;
 };
 
+/// A simulation unit that can schedule events in the context
+///
+/// Every class that inherits from module shall have a default constructor
+/// (possibly trivial) and initialize everything in the initialize method.
 class SIMO_PUBLIC Module {
  public:
+  /// Associate a context to this instance and look at the parameters to
+  /// initialize the structure. The default implementation is to return true.
+  /// Derived classes can call <base_class>::initialize to initialize
+  /// the attributes of the base class
   [[nodiscard]]
   virtual bool initialize(Context& sim_ctx_v, const Parameters& parameters);
 
@@ -67,6 +90,7 @@ class SIMO_PUBLIC Module {
 
   virtual ~Module() = default;
 
+  /// Record a statistic in a StatMapper to dump statistics
   void record_statistics(Statistics::StatMapper& mapper);
 
   [[nodiscard]] Port* get_port(std::string_view);
@@ -77,12 +101,14 @@ class SIMO_PUBLIC Module {
   }
 
  protected:
+  /// Create a new statistic of type T
   template <typename T, typename... Args>
   T& create_statistic(Args... args) {
     T& s = statistics.emplace<T>(std::forward<Args>(args)...);
     return s;
   }
 
+  /// Create a new port of type T
   template <typename T, typename... Args>
   T& create_port(const std::string_view name, Args... args) {
     auto ptr = std::make_unique<T>(std::forward<Args>(args)...);

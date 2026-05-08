@@ -18,6 +18,7 @@
 #include <Simo/compiler/Compiler.h>
 
 #include <Simo/compiler/BoostTypeIndexRuntimeCast.hh>
+#include <ranges>
 #include <unordered_map>
 
 #include "Parameter.h"
@@ -26,6 +27,10 @@ namespace Simo::Parameter {
 class Parameter;
 constexpr char PARAMETER_NODE_SEPARATOR = '/';
 
+/// Store parameters in a trie structure
+///
+/// Parameters can be expressed in a trie-like system by using '/' command
+/// in a path-like style
 class SIMO_PUBLIC ParameterTrie {
   static constexpr std::pair<std::string_view, std::string_view>
   split_string_view(const std::string_view name) {
@@ -84,7 +89,8 @@ class SIMO_PUBLIC ParameterTrie {
                : boost::typeindex::runtime_cast<ParameterTyped<T>*>(res);
   }
 
-  const ParameterTrie* get_subtrie(const std::string_view name) const {
+  [[nodiscard]] const ParameterTrie* get_subtrie(
+      const std::string_view name) const {
     if (name.empty()) {
       return this;
     }
@@ -93,6 +99,22 @@ class SIMO_PUBLIC ParameterTrie {
       return nullptr;
     }
     return children.at(std::string(child_name)).get_subtrie(rest_of_name);
+  }
+
+  /// Verify that predicate function is valid for all the parameters. Return
+  /// false as soon as possible
+  template <typename Function>
+  [[nodiscard]]
+  bool all(Function f) const {
+    if (value != nullptr && !f(*value)) {
+      return false;
+    }
+    for (const auto& snd : children | std::views::values) {
+      if (!snd.all(f)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   std::unique_ptr<Parameter> value;

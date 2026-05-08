@@ -56,16 +56,19 @@ enum struct ParameterAdditionError : uint8_t {
 /// be scheduled with any time. After the simulation starts (ie a call to a run*
 /// method is performed), the state becomes RUNNING. In this state, events can
 /// only be scheduled for a time in the future. The current time can be probed
-/// with current_time() method.
+/// with current_time() method. When no events are schedules, the state
+/// transitions to STOPPED. New events can be scheduled even in this state
 class SIMO_PUBLIC Context {
  public:
   enum struct State : uint8_t { INITIALIZATION, RUNNING, STOPPED };
 
   Context();
 
-  ~Context() {}
+  ~Context() = default;
 
   /// Initialize the context and the registered modules
+  ///
+  /// This can be done before the first call to run method
   [[nodiscard]]
   bool initialize();
 
@@ -73,6 +76,8 @@ class SIMO_PUBLIC Context {
   ///
   /// If the simulation current_time is t and this function is called,
   /// current_time will be t + time_delta at the end of the function
+  /// If the context is not initialized, the initialize method is going
+  /// to be called before the execution
   void run(const Time& time_delta);
 
   /// Run at the time expressed in time_target
@@ -80,31 +85,38 @@ class SIMO_PUBLIC Context {
   /// Run the simulation untile time_target is reached.
   void run_at(const Time& final_time);
 
+  /// Schedule event at time_target time
   void schedule_at(const Time& time_target, const SimulationCallable& callable);
+  /// Schedule event at time_target time
   void schedule_at(const Time& time_target,
                    const std::function<void()>& callable);
 
   /// Schedule an event for time current_time + time_delta
   void schedule_in(const Time& time_delta, const SimulationCallable& callable);
+  /// Schedule an event for time current_time + time_delta
   void schedule_in(const Time& time_delta,
                    const std::function<void()>& callable);
 
   // Methods to initialize the context
+
+  /// Add parameter of specific type. Return reference to parameter
   template <typename T>
   [[maybe_unused]]
   Parameter::ParameterTyped<T>& add_parameter(const std::string& name,
                                               const T& value) {
     return parameters.add<T>(name, value);
   }
+
+  /// Add module with a set of parameters to the context.
+  ///
+  /// Modules are going to be initialized during initialization
   void add(Module& module, Parameters&);
+
+  /// Remove a modules from the context before initialization occurs
   void remove(const Module& module);
 
   [[nodiscard]] State get_state() const;
   [[nodiscard]] Time current_time() const;
-  [[nodiscard]] bool current_time_between_pos_and_neg_edge(
-      const Period& period) const;
-  [[nodiscard]] bool current_time_between_neg_and_pos_edge(
-      const Period& period) const;
 
  private:
   State state{State::INITIALIZATION};

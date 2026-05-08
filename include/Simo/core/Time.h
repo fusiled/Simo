@@ -23,6 +23,11 @@
 #include "../compiler/Compiler.h"
 
 namespace Simo {
+/// Express time in simulation. The minimum time that can be expressed in
+/// pico-seconds
+///
+/// The underlying representation is uint64_t, so all the operations are
+/// performed on this data type
 class SIMO_PUBLIC Time final {
  public:
   enum struct Unit : std::uint8_t { PS, NS, US, MS, S };

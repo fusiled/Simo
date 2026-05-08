@@ -23,6 +23,7 @@
 
 namespace Simo::Parameter {
 
+/// Base class for any Parameter
 class Parameter {
  public:
   Parameter() = default;
@@ -45,6 +46,7 @@ class Parameter {
   std::string name_;
 };
 
+/// A Parameter with a type
 template <typename T>
 class ParameterTyped : public Parameter {
  public:

@@ -62,7 +62,7 @@ class StatOutStream : public StatOutStreamInterface {
   void generate() {
     std::string buffer;
     // TODO hanndle errors
-    auto _ = glz::write_file_json(array, "output.json", buffer);
+    auto _ = glz::write_file_json(array, output_path().c_str(), buffer);
   }
 
  private:

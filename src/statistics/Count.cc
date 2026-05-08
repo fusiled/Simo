@@ -92,6 +92,8 @@ std::string Count::serialize() {
   return ss.str();
 }*/
 
-glz::generic Count::to_json() const { return {}; }
+glz::generic Count::to_json() const {
+  return {{"name", name()}, {"value", value()}};
+}
 
 }  // namespace Simo::Statistics

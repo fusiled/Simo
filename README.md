@@ -32,9 +32,7 @@ The GitHub actions runs entering the virtual environment of `nix develop`.
 
 ## Features
 
-- Loading components from shared objects at runtime
-
-See Documentation for more details.
+- Loading components from shared objects at runtime ([examples](./tests/collection/CollectionTest.cc))
 
 ## Motivations of creating Simo
 

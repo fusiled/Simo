@@ -42,7 +42,6 @@ class PingModule : public Simo::Module {
  public:
   bool initialize(Simo::Context& sim_ctx_p,
                   const Simo::Parameters& parameters) override {
-    Simo::Parameters port_params = parameters;
     period = parameters.get<Simo::Time>("period")->value();
     port =
         &create_port<Simo::Ports::BidirectionalPort<PingPongMessage>>("port");
@@ -87,7 +86,6 @@ class PongModule : public Simo::Module {
  public:
   bool initialize(Simo::Context& sim_ctx_v,
                   const Simo::Parameters& parameters) override {
-    Simo::Parameters port_params = parameters;
     period = parameters.get<Simo::Time>("period")->value();
     port =
         &create_port<Simo::Ports::BidirectionalPort<PingPongMessage>>("port");

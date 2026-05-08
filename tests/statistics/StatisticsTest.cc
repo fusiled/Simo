@@ -60,6 +60,14 @@ class StatisticRecordingModule final : public Simo::Module {
   Simo::Statistics::Count* sent_counter_ = nullptr;
 };
 
+[[nodiscard]] std::string read_file_contents(
+    const std::filesystem::path& path) {
+  std::ifstream input(path);
+  std::ostringstream contents;
+  contents << input.rdbuf();
+  return contents.str();
+}
+
 }  // namespace
 
 BOOST_AUTO_TEST_CASE(count_constructors_and_basic_mutation) {
@@ -186,6 +194,43 @@ BOOST_AUTO_TEST_CASE(stat_storage_get) {
 
   auto* missing = storage.get<Count>("missing");
   BOOST_CHECK_EQUAL(missing, nullptr);
+}
+
+BOOST_AUTO_TEST_CASE(stat_out_stream_writes_streamed_statistics_and_resets) {
+  using Simo::Statistics::Count;
+  using Simo::Statistics::StatOutStream;
+
+  const auto tmp_path = std::filesystem::temp_directory_path();
+
+  StatOutStream output;
+  BOOST_CHECK(output.output_path().empty());
+
+  const std::filesystem::path configured_path =
+      tmp_path / "configured-output.json";
+  output.output_path(configured_path);
+  BOOST_CHECK_EQUAL(output.output_path().string(), configured_path.string());
+
+  Count sent("sent", 12);
+  Count received("received", 4);
+
+  StatOutStream& returned = (output << sent) << received;
+  BOOST_CHECK_EQUAL(&returned, &output);
+
+  output.generate();
+
+  const glz::generic::array_t expected = {
+      sent.to_json(),
+      received.to_json(),
+  };
+  auto expected_str = glz::write_json(expected);
+  BOOST_REQUIRE(expected_str);
+
+  BOOST_REQUIRE(std::filesystem::exists(configured_path));
+  BOOST_CHECK_EQUAL(read_file_contents(configured_path), *expected_str);
+
+  output.reset();
+  output.generate();
+  BOOST_CHECK_EQUAL(read_file_contents(configured_path), "[]");
 }
 
 BOOST_AUTO_TEST_CASE(stat_mapper_compute_diff_and_assign) {

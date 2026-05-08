@@ -95,16 +95,6 @@ BOOST_AUTO_TEST_CASE(StatStorage) {
 }
 
 BOOST_AUTO_TEST_CASE(StatMapper) {
-  class TestStatStream : public Simo::Statistics::StatOutStreamInterface {
-   public:
-    /*TestStatStream& operator<<(const Count& c) {
-      if (c.name() == "test") {
-        BOOST_CHECK_EQUAL(c.value(), 3);
-      }
-      return *this;
-    }*/
-  };
-
   Simo::Statistics::StatMapper mapper;
   Simo::Statistics::Count stat("test", 12);
   mapper.add(stat);

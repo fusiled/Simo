@@ -93,20 +93,17 @@ set_target_properties(Simo PROPERTIES
         VISIBILITY_INLINES_HIDDEN 1
 )
 
+target_include_directories(Simo
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+target_include_directories(Simo PRIVATE src)
+
 install(TARGETS Simo)
 install(DIRECTORY include/
         DESTINATION include
 )
-install(DIRECTORY ${Boost_INCLUDE_DIRS}
-        DESTINATION include/boost/type_index
-)
-install(FILES ${Boost_INCLUDE_DIRS}/boost/type_index.hpp
-        DESTINATION include/boost
-)
-
-
-target_include_directories(Simo PUBLIC include)
-target_include_directories(Simo PRIVATE src)
 
 
 ## Unit tests

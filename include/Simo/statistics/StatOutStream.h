@@ -20,6 +20,7 @@ namespace Simo::Statistics {
 class StatMapper;
 class Statistic;
 
+/// Base class to dump statistics
 class StatOutStreamInterface {
  public:
   virtual ~StatOutStreamInterface() = default;
@@ -39,6 +40,7 @@ class StatOutStreamInterface {
   }
 };
 
+/// Basic implementation to dump statistics as a json
 class StatOutStream : public StatOutStreamInterface {
  public:
   ~StatOutStream() override = default;
@@ -58,8 +60,8 @@ class StatOutStream : public StatOutStreamInterface {
   void reset() { array = glz::generic::array_t{}; }
 
   void generate() {
-    // PRODUCE something
     std::string buffer;
+    // TODO hanndle errors
     auto _ = glz::write_file_json(array, "output.json", buffer);
   }
 

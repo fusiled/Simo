@@ -29,8 +29,11 @@ class Statistic {
 
   Statistic() = default;
 
+  /// Create a new copy of this statistic
   [[nodiscard]] virtual std::unique_ptr<Statistic> clone() const = 0;
 
+  /// Make difference of this statistic with other and return the different
+  /// as a new instance
   [[nodiscard]] virtual std::unique_ptr<Statistic> compute_delta(
       const Statistic& other) const = 0;
 

@@ -24,6 +24,7 @@
 #include "Statistic.h"
 
 namespace Simo::Statistics {
+/// Simple statistic that count events
 class SIMO_PUBLIC Count : public Statistic {
  public:
   BOOST_TYPE_INDEX_REGISTER_RUNTIME_CLASS(Statistic)

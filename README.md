@@ -1,33 +1,45 @@
-# Simo - The pragmatic simulator of computer systems
+# Simo - Simple Modeling
 
-Simulation is hard. Harnessing the underlying infrastructure must be easy.
+Simulation of computer architectures is hard. Harnessing the underlying infrastructure
+must be easy.
 
 ## What is this?
 
-Simo is a C++ library that allows to simulate computer systems. It
-uses a discrete-event system where a cycle-based approach is encouraged.
+Simo is a C++ library that allows to simulate computer systems. It  uses a
+discrete-event system where a cycle-based approach is encouraged.
 This library has been created after years of experience with computer systems
 simulators (both in research and in industry) and it tries to create something that
 it is missing: a simple, easy to use library that does what you need.
 
 ## Build
 
-Boost and CMake >= 3.31.0 are the only real build dependencies. Build Simo with CMake. 
-The build will produce `libSimo.<extension>`. `<extension>` depends on the building target platform and compilation flags.
+Build dependencies:
+- CMake >= 3.31.0
+- Boost ([Boost.Test](https://www.boost.org/libs/test),
+[Boost.TypeIndex](https://www.boost.org/libs/type_index))
+- [Glaze](https://github.com/stephenberry/glaze)
 
-The nix flake simplifies the setting up the dependencies. After having installed nix, just run `nix develop` to enter 
-a virtual environment with all the required tools installed. The Github actions are instrumented using the nix flake.
+Runtime dependencies:
+- Boost ([Boost.TypeIndex](https://www.boost.org/libs/type_index))
+- [Glaze](https://github.com/stephenberry/glaze)
+
+The build will produce `libSimo`.
+
+The nix flake simplifies the setting up the dependencies. With nix installed you can:
+- Build the package with `nix build`
+- Run `nix develop` to enter a virtual environment with all the required tools installed.
+The GitHub actions runs entering the virtual environment of `nix develop`.
 
 ## Features
 
-- Dynamic detection and loading of collections
+- Loading components from shared objects at runtime
 
 See Documentation for more details.
 
 ## Motivations of creating Simo
 
-Simulators publicly available pretends to be easy to use, but in practice they are not. Creating a new solution from
-scratch is not easy, but it can solve the problems of the exiting ones. More information in [docs](./docs/README.md).
+Simulators publicly available pretends to be easy to use, but in practice they are not. 
+More information in [docs](./docs/README.md).
 
 ## Code Contributions
 

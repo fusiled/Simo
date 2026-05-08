@@ -31,12 +31,11 @@
           nativeBuildInputs = with pkgs; [
             cmake
             ninja
-            pkg-config
-            glaze
           ];
 
           buildInputs = with pkgs; [
             boost
+            glaze
           ];
 
           cmakeFlags = [
@@ -61,7 +60,6 @@
             boost
             cmake
             ninja
-            pkg-config
             clang-tools
             llvm
             glaze

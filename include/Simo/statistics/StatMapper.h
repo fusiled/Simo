@@ -23,6 +23,9 @@
 
 namespace Simo::Statistics {
 
+/// Keep reference of statistics and of a previous values of them
+///
+/// Usefull for dumping statistics during simulation
 class StatMapper {
  public:
   void add(Statistic& stat) { storage.emplace_back(stat.clone(), &stat); }

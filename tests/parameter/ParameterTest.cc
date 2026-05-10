@@ -32,16 +32,32 @@ BOOST_AUTO_TEST_CASE(ParameterTyped_default_constructor_and_setters) {
   BOOST_CHECK_EQUAL(p.value(), -7);
 }
 
+BOOST_AUTO_TEST_CASE(ParameterTyped_type) {
+  using Simo::Parameter::ParameterTyped;
+  using Simo::Parameter::Parameter;
+
+  ParameterTyped<int> p;
+  BOOST_CHECK_EQUAL(p.type().pretty_name(), "Simo::Parameter::ParameterTyped<int>");
+}
+
 BOOST_AUTO_TEST_CASE(ParameterTyped_value_constructor) {
   using Simo::Parameter::ParameterTyped;
 
   ParameterTyped<std::string> p("fast");
   p.validator([](const std::string& s) {
-    std::cout << "Parameter validator " << s << std::endl;
     return s == "fast" || s == "slow";
   });
   BOOST_CHECK_EQUAL(p.validate(), true);
   BOOST_CHECK_EQUAL(p.value(), "fast");
+}
+
+BOOST_AUTO_TEST_CASE(ParameterTyped_has_value_false) {
+  using Simo::Parameter::ParameterTyped;
+
+  ParameterTyped<std::string> p;
+  BOOST_CHECK_EQUAL(p.has_value(), false);
+  const bool v_result = p.validate();
+  BOOST_CHECK_EQUAL(v_result, false);
 }
 
 BOOST_AUTO_TEST_CASE(ParameterTrie_find_typed_success) {

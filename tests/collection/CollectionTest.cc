@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(dynamic_load_test) {
   BOOST_CHECK_NE(ping_stat, nullptr);
   BOOST_CHECK_NE(pong_stat, nullptr);
 
-  sim_ctx.run_at(Time(1));
+  sim_ctx.run_at(Time::one);
   // Packets are put on the flop at negedge
   // Every cycle, 1 transaction takes place
   BOOST_CHECK_EQUAL(ping_stat->value(), 0);
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(dynamic_load_and_factory_safe_unsafe_apis) {
   Simo::Context sim_ctx;
   sim_ctx.add(*raw_module, *raw_params);
   BOOST_CHECK_EQUAL(sim_ctx.initialize(), true);
-  sim_ctx.run_at(Time(1));
+  sim_ctx.run_at(Time::one);
 }
 
 BOOST_AUTO_TEST_CASE(dynamic_load_error_code_dlopen_fail) {

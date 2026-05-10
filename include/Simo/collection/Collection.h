@@ -86,6 +86,15 @@ struct SimoCollection {
     }
     return nullptr;
   }
+
+  std::vector<std::pair<std::string_view, const Factory*>> get_factory_pairs() const noexcept {
+    std::vector<std::pair<std::string_view, const Factory*>> factory_pairs;
+    factory_pairs.reserve(factory_list_size);
+    for (unsigned i = 0; i < factory_list_size; ++i) {
+      factory_pairs.emplace_back(factory_list[i].get_name(), factory_list+i);
+    }
+    return factory_pairs;
+  }
 };
 
 /// Use RAII to cleanup the associated library.

@@ -23,7 +23,7 @@ option(PORTABLE_BUILD "Be verbose on build and turn warnings into errors for the
 option(DEBUG_CMAKE "Enable debug output from CMake" OFF)
 option(ENABLE_COVERAGE "Enable code coverage build" OFF)
 option(ENABLE_RELEASE_LTO "Enable link-time optimization for release builds" ON)
-option(ENABLE_RTTI "ENABLE RTTI for all the builds" OFF)
+option(ENABLE_RTTI "Enable RTTI to build libSimo" OFF)
 
 
 if (ENABLE_COVERAGE)
@@ -44,10 +44,6 @@ if (APPLE)
   add_definitions(-D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES=1)
 endif ()
 
-IF (NOT "${ENABLE_RTTI}")
-  add_compile_options("-fno-rtti")
-endif ()
-
 if (PORTABLE_BUILD)
   add_compile_options(-Werror -Wall -Wextra -pedantic)
 endif ()
@@ -64,6 +60,10 @@ add_library(Simo SHARED
         src/statistics/Count.cc
 )
 
+IF (NOT "${ENABLE_RTTI}")
+  target_compile_options(Simo PRIVATE "-fno-rtti")
+endif ()
+
 if ("${ENABLE_RELEASE_LTO}")
   set_target_properties(Simo PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 endif ()
@@ -75,7 +75,7 @@ set_target_properties(Simo PROPERTIES
 
 target_compile_options(Simo PRIVATE -fno-exceptions)
 
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost REQUIRED COMPONENTS unit_test_framework program_options)
 message("Boost version: ${Boost_VERSION}")
 
 find_package(glaze REQUIRED)
@@ -100,6 +100,10 @@ target_include_directories(Simo
 )
 target_include_directories(Simo PRIVATE src)
 
+
+add_executable(SimoSim src/SimoSim/SimoSim.cc)
+target_link_libraries(SimoSim PRIVATE Simo Boost::program_options)
+
 install(TARGETS Simo)
 install(DIRECTORY include/
         DESTINATION include
@@ -118,6 +122,9 @@ function(create_unit_test_executable name)
     set_tests_properties("${name}" PROPERTIES
             ENVIRONMENT "LLVM_PROFILE_FILE=${CMAKE_BINARY_DIR}/${name}.profraw"
     )
+  endif ()
+  IF (NOT "${ENABLE_RTTI}")
+    target_compile_options("${name}" PRIVATE "-fno-rtti")
   endif ()
 endfunction()
 
@@ -159,6 +166,9 @@ target_link_libraries(test_Statistics PRIVATE Simo)
 add_library(SimoTestPingPongCollection SHARED
         tests/collection/PingPongCollection.cc
 )
+IF (NOT "${ENABLE_RTTI}")
+  target_compile_options(SimoTestPingPongCollection PRIVATE "-fno-rtti")
+endif ()
 target_compile_options(SimoTestPingPongCollection PRIVATE -fno-exceptions)
 # Compile only with includes. Do not link against libraries
 target_link_libraries(SimoTestPingPongCollection PRIVATE $<COMPILE_ONLY:Simo>)

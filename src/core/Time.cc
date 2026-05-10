@@ -4,6 +4,7 @@
 
 namespace Simo {
 Time Time::zero = Time(0);
+Time Time::one = Time(1);
 
 SIMO_PUBLIC std::ostream& operator<<(std::ostream& out, const Time& e) {
   out << "Time( " << e.to_picoseconds() << " ps)";

@@ -43,7 +43,7 @@ class TestParameters : public Simo::Parameters {
  public:
   [[nodiscard]] bool check() const override {
     const auto* param = get<Simo::Time>("period");
-    return param != nullptr && param->value() > Simo::Time(1);
+    return param != nullptr && param->value() > Simo::Time::one;
   }
 };
 
@@ -61,8 +61,8 @@ BOOST_AUTO_TEST_CASE(SimpleLoop) {
 
   const bool initialize_success = sim_ctx.initialize();
   BOOST_REQUIRE_EQUAL(initialize_success, true);
-  sim_ctx.run_at(Time(1));
-  BOOST_CHECK_EQUAL(sim_ctx.current_time(), Time(1));
+  sim_ctx.run_at(Time::one);
+  BOOST_CHECK_EQUAL(sim_ctx.current_time(), Time::one);
   BOOST_CHECK_EQUAL(test_module.counter->value(), 1);
   sim_ctx.run_at(Time(11));
   BOOST_CHECK_EQUAL(sim_ctx.current_time(), Time(11));
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(InitializationFailure) {
   params.name("test");
   // TestParameters expects period to be at least 2, so the context
   // initialization will fail
-  params.set<Time>("period", Time(1));
+  params.set<Time>("period", Time::one);
 
   TestModule test_module;
   sim_ctx.add(test_module, params);

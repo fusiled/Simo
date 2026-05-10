@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(ContextModuleAddRemoveAffectsInitializationLifecycle) {
   sim_ctx.add(removed_module, module_params);
   sim_ctx.remove(removed_module);
 
-  sim_ctx.run_at(Time(1));
+  sim_ctx.run_at(Time::one);
 
   BOOST_CHECK_EQUAL(kept_module.was_initialized, true);
   BOOST_CHECK_EQUAL(removed_module.was_initialized, false);
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(ContextAddParameterTemplateInstantiations) {
   sim_ctx.add_parameter<std::string>("string", "hello");
   sim_ctx.add_parameter<Time>("time", Time(12));
 
-  sim_ctx.run_at(Time(1));
+  sim_ctx.run_at(Time::one);
   BOOST_CHECK(sim_ctx.get_state() == Context::State::STOPPED);
 }
 

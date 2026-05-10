@@ -57,16 +57,16 @@ class SIMO_PUBLIC ParameterTrie {
     return *this;
   }
 
-  template <typename T>
+  template <typename T, typename ...Args>
   [[nodiscard]]
-  ParameterTyped<T>& add(const std::string_view name, const T& v) {
-    if (name.empty()) {
-      auto ptr = new ParameterTyped<T>(v);
-      value = std::unique_ptr<Parameter>(ptr);
-      return *ptr;
-    }
-    const auto [child_name, rest_of_name] = split_string_view(name);
-    return children[std::string(child_name)].add(rest_of_name, v);
+  ParameterTyped<T>& add(const std::string_view name, Args... args) {
+    return add_generic<T>(name, true, std::forward<Args>(args)...);
+  }
+
+  template <typename T>
+  [[maybe_unused]]
+  ParameterTyped<T>& add_unset(const std::string_view name) {
+    return add_generic<T>(name, false);
   }
 
   [[nodiscard]]
@@ -106,7 +106,7 @@ class SIMO_PUBLIC ParameterTrie {
   template <typename Function>
   [[nodiscard]]
   bool all(Function f) const {
-    if (value != nullptr && !f(*value)) {
+    if (value != nullptr && value->has_value() && !f(*value)) {
       return false;
     }
     for (const auto& snd : children | std::views::values) {
@@ -118,6 +118,20 @@ class SIMO_PUBLIC ParameterTrie {
   }
 
   std::unique_ptr<Parameter> value;
+
+protected:
+  template <typename T, typename ...Args>
+[[nodiscard]]
+ParameterTyped<T>& add_generic(const std::string_view name, bool has_value, Args&&... args) {
+    if (name.empty()) {
+      auto ptr = new ParameterTyped<T>(std::forward<Args>(args)...);
+      value = std::unique_ptr<Parameter>(ptr);
+      value->has_value(has_value);
+      return *ptr;
+    }
+    const auto [child_name, rest_of_name] = split_string_view(name);
+    return children[std::string(child_name)].add_generic<T>(rest_of_name, has_value, std::forward<Args>(args)...);
+  }
 
  private:
   std::unordered_map<std::string, ParameterTrie> children;

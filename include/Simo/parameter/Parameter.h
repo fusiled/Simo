@@ -20,6 +20,9 @@
 #include <functional>
 #include <string>
 #include <utility>
+#include <glaze/yaml/read.hpp>
+
+#include "Simo/compiler/Compiler.h"
 
 namespace Simo::Parameter {
 
@@ -40,10 +43,17 @@ class Parameter {
 
   [[nodiscard]] virtual std::unique_ptr<Parameter> clone() const = 0;
 
- protected:
-  explicit Parameter(const std::string_view name) : name_(name) {};
+  [[nodiscard]]
+  bool has_value() const { return has_value_;}
 
-  std::string name_;
+  template<typename Self>
+  Self &has_value(this Self &self, const bool new_val) {
+    self.has_value_ = new_val;
+    return self;
+  }
+
+ protected:
+  bool has_value_ = false;
 };
 
 /// A Parameter with a type
@@ -57,9 +67,23 @@ class ParameterTyped : public Parameter {
 
   ParameterTyped() = default;
 
-  explicit ParameterTyped(const T& value) : value_(value) {}
+  explicit ParameterTyped(const T& value) : value_(value) {
+    has_value_  = true;
+  }
 
-  explicit ParameterTyped(const T&& value) : value_(value) {}
+  explicit ParameterTyped(const T&& value) : value_(value) {
+    has_value_  = true;
+  }
+
+  static ParameterTyped from_string(const std::string_view str_value) {
+    ParameterTyped out;
+    if (auto error = glz::read_yaml(out.value_, str_value)) {
+      // TODO improve error reporting
+      SIMO_ASSERT(false && "Failed to parse parameter from string");
+    }
+    out.has_value_ = true;
+    return out;
+  }
 
   ParameterTyped& validator(Validator validator) {
     validator_ = std::move(validator);
@@ -74,6 +98,9 @@ class ParameterTyped : public Parameter {
   [[nodiscard]] T value() const { return value_; }
 
   [[nodiscard]] bool validate() const override {
+    if (!has_value_) {
+      return false;
+    }
     if (validator_ == nullptr) {
       return true;
     }

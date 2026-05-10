@@ -52,6 +52,8 @@ class SIMO_PUBLIC Time final {
     }
   }
 
+  constexpr Time():Time(0) {}
+
   constexpr Time operator+(const Time& t) const {
     return Time(picoseconds + t.picoseconds);
   }
@@ -103,6 +105,7 @@ class SIMO_PUBLIC Time final {
   friend std::ostream& operator<<(std::ostream& out, const Time& e);
 
   static Time zero;
+  static Time one;
 
  private:
   std::uint64_t picoseconds;

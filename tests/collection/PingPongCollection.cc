@@ -33,8 +33,10 @@ extern "C" {
 enum struct PingPongMessage : std::uint32_t { PING = 0, PONG = 1 };
 
 class PingPongParameters : public Simo::Parameters {
-  [[nodiscard]] bool check() const override {
-    return trie.find<Simo::Time>("period") != nullptr;
+public:
+  PingPongParameters() {
+    // Declare parameters in constructor
+    trie.add_unset<Simo::Time>("period").validator([](const auto &t){return t > Simo::Time::one;});
   }
 };
 
@@ -42,13 +44,13 @@ class PingModule : public Simo::Module {
  public:
   bool initialize(Simo::Context& sim_ctx_p,
                   const Simo::Parameters& parameters) override {
+    if (!Module::initialize(sim_ctx_p, parameters)) {
+      return false;
+    }
     period = parameters.get<Simo::Time>("period")->value();
     port =
         &create_port<Simo::Ports::BidirectionalPort<PingPongMessage>>("port");
     num_msg_sent = &create_statistic<Simo::Statistics::Count>("num_msg_sent");
-    if (!Module::initialize(sim_ctx_p, parameters)) {
-      return false;
-    }
 
     sim_ctx().schedule_at(Simo::Time::zero, [this]() { update_state(); });
     sim_ctx().schedule_at(period / 2, [this]() { try_send(); });
@@ -86,13 +88,13 @@ class PongModule : public Simo::Module {
  public:
   bool initialize(Simo::Context& sim_ctx_v,
                   const Simo::Parameters& parameters) override {
+    if (!Module::initialize(sim_ctx_v, parameters)) {
+      return false;
+    }
     period = parameters.get<Simo::Time>("period")->value();
     port =
         &create_port<Simo::Ports::BidirectionalPort<PingPongMessage>>("port");
     num_msg_sent = &create_statistic<Simo::Statistics::Count>("num_msg_sent");
-    if (!Module::initialize(sim_ctx_v, parameters)) {
-      return false;
-    }
     sim_ctx().schedule_at(Simo::Time::zero, [this]() { update_state(); });
     sim_ctx().schedule_at(period / 2, [this]() { try_send(); });
 

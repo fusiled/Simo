@@ -27,20 +27,6 @@
 
 namespace {
 
-class NamedParameter final : public Simo::Parameter::Parameter {
- public:
-  NamedParameter() : Simo::Parameter::Parameter("named_parameter") {}
-
-  [[nodiscard]] bool validate() const override { return true; }
-
-  [[nodiscard]] std::unique_ptr<Simo::Parameter::Parameter> clone()
-      const override {
-    return std::make_unique<NamedParameter>();
-  }
-
-  [[nodiscard]] std::string_view stored_name() const { return name_; }
-};
-
 class NamedPort final : public Simo::Port {
  public:
   [[nodiscard]] bool connect(Simo::Port* other) override {
@@ -280,18 +266,6 @@ BOOST_AUTO_TEST_CASE(stat_mapper_compute_diff_and_assign) {
     }
     BOOST_FAIL("Unexpected statistic name: " + count->name());
   }
-}
-
-BOOST_AUTO_TEST_CASE(ParameterTypeAndNamedConstructorAreReachable) {
-  NamedParameter param;
-
-  BOOST_CHECK_EQUAL(param.stored_name(), "named_parameter");
-  BOOST_CHECK(param.validate());
-  const auto base_runtime_type = param.type();
-
-  auto cloned = param.clone();
-  BOOST_REQUIRE_NE(cloned, nullptr);
-  BOOST_CHECK_EQUAL(cloned->type(), base_runtime_type);
 }
 
 BOOST_AUTO_TEST_CASE(PortNameGetterAndSetter) {

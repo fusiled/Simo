@@ -100,10 +100,6 @@ target_include_directories(Simo
 )
 target_include_directories(Simo PRIVATE src)
 
-
-add_executable(SimoSim src/SimoSim/SimoSim.cc)
-target_link_libraries(SimoSim PRIVATE Simo Boost::program_options)
-
 install(TARGETS Simo)
 install(DIRECTORY include/
         DESTINATION include

@@ -19,8 +19,12 @@
 #include <functional>
 #include <ostream>
 #include <type_traits>
+#include <glaze/core/common.hpp>
+#include <glaze/core/custom.hpp>
 
 #include "../compiler/Compiler.h"
+
+
 
 namespace Simo {
 /// Express time in simulation. The minimum time that can be expressed in
@@ -117,6 +121,20 @@ struct std::hash<Simo::Time> {
   std::size_t operator()(Simo::Time const& t) const noexcept {
     return std::hash<uint64_t>{}(t.to_picoseconds());
   }
+};
+
+template <>
+struct glz::meta<Simo::Time::Unit> {
+  using enum Simo::Time::Unit;
+  static constexpr auto value = enumerate(PS, NS, US, MS, S);
+};
+
+// Defines the mapping to JSON
+template <>
+struct glz::meta<Simo::Time> {
+  static constexpr auto value = glz::custom<
+      [](Simo::Time& t, std::uint64_t ps) { t = Simo::Time(ps); },
+      [](const Simo::Time& t) -> std::uint64_t { return t.to_picoseconds(); }>;
 };
 
 #endif  // SIMO_TIME_HH

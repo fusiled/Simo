@@ -58,6 +58,13 @@ class SIMO_PUBLIC Parameters {
     return trie.find<T>(name);
   }
 
+  [[nodiscard]] Parameter::Parameter* get(
+    const std::string& name) const {
+    return trie.find(name);
+  }
+
+
+
   /// Get a set of parameters in a parameter subtree
   ///
   /// Parameters are organized in a tree-like structure (a trie), so it is

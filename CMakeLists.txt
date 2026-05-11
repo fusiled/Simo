@@ -75,7 +75,7 @@ set_target_properties(Simo PROPERTIES
 
 target_compile_options(Simo PRIVATE -fno-exceptions)
 
-find_package(Boost REQUIRED COMPONENTS unit_test_framework program_options)
+find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 message("Boost version: ${Boost_VERSION}")
 
 find_package(glaze REQUIRED)
@@ -99,6 +99,13 @@ target_include_directories(Simo
         $<INSTALL_INTERFACE:include>
 )
 target_include_directories(Simo PRIVATE src)
+
+
+add_executable(SimoSim src/SimoSim/SimoSim.cc)
+target_link_libraries(SimoSim PRIVATE Simo)
+IF (NOT "${ENABLE_RTTI}")
+  target_compile_options(SimoSim PRIVATE "-fno-rtti")
+endif ()
 
 install(TARGETS Simo)
 install(DIRECTORY include/

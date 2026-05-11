@@ -114,6 +114,34 @@ BOOST_AUTO_TEST_CASE(dynamic_load_test_failure) {
   BOOST_CHECK_EQUAL(collection.has_value(), false);
 }
 
+BOOST_AUTO_TEST_CASE(dynamic_load_parameter_value_from_generic) {
+  using Simo::Collections::simo_get_collection;
+
+  auto expected_collection = simo_get_collection(collection_library_path());
+  BOOST_REQUIRE(expected_collection.has_value());
+
+  const auto* collection = expected_collection->get_collection();
+  BOOST_REQUIRE_NE(collection, nullptr);
+
+  const auto* ping_factory = collection->get_factory("ping");
+  BOOST_REQUIRE_NE(ping_factory, nullptr);
+
+  auto params = ping_factory->get_parameters();
+  auto* period = params->get("period");
+  BOOST_REQUIRE_NE(period, nullptr);
+
+  glz::generic_u64 value;
+  value = static_cast<std::uint64_t>(10);
+
+  auto result = period->value_from_generic(value);
+  BOOST_REQUIRE(result.has_value());
+
+  auto* typed_period = params->get<Simo::Time>("period");
+  BOOST_REQUIRE_NE(typed_period, nullptr);
+  BOOST_CHECK(typed_period->has_value());
+  BOOST_CHECK_EQUAL(typed_period->value().to_picoseconds(), 10U);
+}
+
 BOOST_AUTO_TEST_CASE(dynamic_load_test_folder) {
   using Simo::Collections::simo_get_collection_from_folder;
 
@@ -132,6 +160,40 @@ BOOST_AUTO_TEST_CASE(dynamic_load_test_folder) {
     }
   }
   BOOST_FAIL("PingPongCollection not detected");
+}
+
+BOOST_AUTO_TEST_CASE(dynamic_load_from_folder_parameter_value_from_generic) {
+  using Simo::Collections::simo_get_collection_from_folder;
+
+  auto result = simo_get_collection_from_folder("./");
+  BOOST_REQUIRE(result.has_value());
+
+  const Simo::Collections::Factory* ping_factory = nullptr;
+  for (const auto& collection_with_lib : result.value()) {
+    const auto* collection = collection_with_lib.get_collection();
+    BOOST_REQUIRE_NE(collection, nullptr);
+    if (std::string_view(collection->name) == "PingPongCollection") {
+      ping_factory = collection->get_factory("ping");
+      break;
+    }
+  }
+
+  BOOST_REQUIRE_NE(ping_factory, nullptr);
+
+  auto params = ping_factory->get_parameters();
+  auto* period = params->get("period");
+  BOOST_REQUIRE_NE(period, nullptr);
+
+  glz::generic_u64 value;
+  value = static_cast<std::uint64_t>(10);
+
+  auto result_from_generic = period->value_from_generic(value);
+  BOOST_REQUIRE(result_from_generic.has_value());
+
+  auto* typed_period = params->get<Simo::Time>("period");
+  BOOST_REQUIRE_NE(typed_period, nullptr);
+  BOOST_CHECK(typed_period->has_value());
+  BOOST_CHECK_EQUAL(typed_period->value().to_picoseconds(), 10U);
 }
 
 BOOST_AUTO_TEST_CASE(dynamic_load_and_factory_safe_unsafe_apis) {

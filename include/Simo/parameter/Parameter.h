@@ -18,9 +18,9 @@
 #include <Simo/compiler/BoostTypeIndexRuntimeCast.hh>
 #include <algorithm>
 #include <functional>
+#include <glaze/json/generic.hpp>
 #include <string>
 #include <utility>
-#include <glaze/yaml/read.hpp>
 
 #include "Simo/compiler/Compiler.h"
 
@@ -52,6 +52,9 @@ class Parameter {
     return self;
   }
 
+  [[nodiscard]]
+  virtual std::expected<Parameter*,std::string> value_from_generic(const glz::generic_u64 &glz_value) = 0;
+
  protected:
   bool has_value_ = false;
 };
@@ -75,16 +78,6 @@ class ParameterTyped : public Parameter {
     has_value_  = true;
   }
 
-  static ParameterTyped from_string(const std::string_view str_value) {
-    ParameterTyped out;
-    if (auto error = glz::read_yaml(out.value_, str_value)) {
-      // TODO improve error reporting
-      SIMO_ASSERT(false && "Failed to parse parameter from string");
-    }
-    out.has_value_ = true;
-    return out;
-  }
-
   ParameterTyped& validator(Validator validator) {
     validator_ = std::move(validator);
     return *this;
@@ -92,7 +85,17 @@ class ParameterTyped : public Parameter {
 
   ParameterTyped& value(const T& value) {
     value_ = value;
+    has_value_ = true;
     return *this;
+  }
+
+  [[nodiscard]]
+  std::expected<Parameter*,std::string> value_from_generic(const glz::generic_u64 &glz_value) override {
+    if (auto ec = glz::read_json(value_, glz_value)) {
+      return std::unexpected(glz::format_error(ec));
+    }
+    has_value_ = true;
+    return this;
   }
 
   [[nodiscard]] T value() const { return value_; }

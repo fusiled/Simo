@@ -1,0 +1,13 @@
+# A test config
+
+modules:
+  - name: ping_module
+    type: ping
+    parameters:
+      - period: 10
+  - name: pong_module
+    type: pong
+    parameters:
+      - period: 10
+connections:
+  - ping_module/port: pong_module/port

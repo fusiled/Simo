@@ -15,7 +15,8 @@
 #ifndef SIMO_PARAMETER_HH
 #define SIMO_PARAMETER_HH
 
-#include <Simo/compiler/BoostTypeIndexRuntimeCast.hh>
+#include <Simo/compiler/BoostTypeIndexRuntimeCast.h>
+
 #include <algorithm>
 #include <functional>
 #include <glaze/json/generic.hpp>
@@ -44,16 +45,19 @@ class Parameter {
   [[nodiscard]] virtual std::unique_ptr<Parameter> clone() const = 0;
 
   [[nodiscard]]
-  bool has_value() const { return has_value_;}
+  bool has_value() const {
+    return has_value_;
+  }
 
-  template<typename Self>
-  Self &has_value(this Self &self, const bool new_val) {
+  template <typename Self>
+  Self& has_value(this Self& self, const bool new_val) {
     self.has_value_ = new_val;
     return self;
   }
 
   [[nodiscard]]
-  virtual std::expected<Parameter*,std::string> value_from_generic(const glz::generic_u64 &glz_value) = 0;
+  virtual std::expected<Parameter*, std::string> value_from_generic(
+      const glz::generic_u64& glz_value) = 0;
 
  protected:
   bool has_value_ = false;
@@ -70,12 +74,10 @@ class ParameterTyped : public Parameter {
 
   ParameterTyped() = default;
 
-  explicit ParameterTyped(const T& value) : value_(value) {
-    has_value_  = true;
-  }
+  explicit ParameterTyped(const T& value) : value_(value) { has_value_ = true; }
 
   explicit ParameterTyped(const T&& value) : value_(value) {
-    has_value_  = true;
+    has_value_ = true;
   }
 
   ParameterTyped& validator(Validator validator) {
@@ -90,7 +92,8 @@ class ParameterTyped : public Parameter {
   }
 
   [[nodiscard]]
-  std::expected<Parameter*,std::string> value_from_generic(const glz::generic_u64 &glz_value) override {
+  std::expected<Parameter*, std::string> value_from_generic(
+      const glz::generic_u64& glz_value) override {
     if (auto ec = glz::read_json(value_, glz_value)) {
       return std::unexpected(glz::format_error(ec));
     }

@@ -14,6 +14,7 @@
 
 #define BOOST_TEST_MODULE SimoTimePeriod
 #include <boost/test/unit_test.hpp>
+#include <glaze/glaze.hpp>
 #include <sstream>
 #include <unordered_set>
 
@@ -89,4 +90,23 @@ BOOST_AUTO_TEST_CASE(TimeStreamFormatting) {
   ss << Time(42);
 
   BOOST_CHECK_EQUAL(ss.str(), "Time( 42 ps)");
+}
+
+BOOST_AUTO_TEST_CASE(TimeJsonSerializationAndParsing) {
+  using Simo::Time;
+
+  Time parsed;
+  const auto parse_error = glz::read_json(parsed, R"({"time":7,"unit":"NS"})");
+  BOOST_CHECK(!parse_error);
+  BOOST_CHECK_EQUAL(parsed.to_picoseconds(), 7'000U);
+
+  const auto serialized = glz::write_json(Time(5));
+  BOOST_REQUIRE(serialized.has_value());
+  BOOST_CHECK_EQUAL(*serialized, R"({"time":5,"unit":"PS"})");
+
+  Time unchanged(99);
+  const auto invalid_error =
+      glz::read_json(unchanged, R"({"time":"bad","unit":"PS"})");
+  BOOST_CHECK(invalid_error);
+  BOOST_CHECK_EQUAL(unchanged.to_picoseconds(), 99U);
 }

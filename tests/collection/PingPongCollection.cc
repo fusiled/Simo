@@ -16,6 +16,7 @@
 
 #include <array>
 #include <cstdint>
+#include <print>
 
 #include "Simo/statistics/Count.h"
 
@@ -33,10 +34,11 @@ extern "C" {
 enum struct PingPongMessage : std::uint32_t { PING = 0, PONG = 1 };
 
 class PingPongParameters : public Simo::Parameters {
-public:
+ public:
   PingPongParameters() {
     // Declare parameters in constructor
-    trie.add_unset<Simo::Time>("period").validator([](const auto &t){return t > Simo::Time::one;});
+    trie.add_unset<Simo::Time>("period").validator(
+        [](const auto& t) { return t > Simo::Time::one; });
   }
 };
 

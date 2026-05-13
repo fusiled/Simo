@@ -85,15 +85,8 @@ int64_t Count::operator()() const { return val; }
 
 int64_t Count::value() const { return val; }
 
-/*
-std::string Count::serialize() {
-  std::stringstream ss;
-  ss << "{ name: " << name_ << ", type: count, value: " << val << "}";
-  return ss.str();
-}*/
-
-glz::generic Count::to_json() const {
-  return {{"name", name()}, {"value", value()}};
+glz::generic_u64 Count::dump_representation() const {
+  return {{"name", name()}, {"type", "count"}, {"value", value()}};
 }
 
 }  // namespace Simo::Statistics

@@ -17,7 +17,8 @@
 #ifndef SIMO_STATISTIC_HH
 #define SIMO_STATISTIC_HH
 
-#include <Simo/compiler/BoostTypeIndexRuntimeCast.hh>
+#include <Simo/compiler/BoostTypeIndexRuntimeCast.h>
+
 #include <glaze/glaze.hpp>
 
 namespace Simo::Statistics {
@@ -39,9 +40,10 @@ class Statistic {
 
   virtual void assign_from(const Statistic& other) = 0;
 
-  [[nodiscard]] std::string name() const { return name_; }
+  [[nodiscard]] std::string_view name() const { return name_; }
+  void name(std::string_view new_name) { name_ = new_name; }
 
-  [[nodiscard]] virtual glz::generic to_json() const = 0;
+  [[nodiscard]] virtual glz::generic_u64 dump_representation() const = 0;
 
  protected:
   std::string name_;

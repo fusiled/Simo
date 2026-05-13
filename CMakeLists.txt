@@ -26,6 +26,8 @@ option(ENABLE_RELEASE_LTO "Enable link-time optimization for release builds" ON)
 option(ENABLE_RTTI "Enable RTTI to build libSimo" OFF)
 
 
+add_compile_options("-fno-rtti")
+
 if (ENABLE_COVERAGE)
   if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     # Add the coverage flags for the compiler and linker
@@ -58,10 +60,11 @@ add_library(Simo SHARED
         src/collection/Collection.cc
         src/module/Module.cc
         src/statistics/Count.cc
+        src/module/core/CoreModules.cc
+        src/statistics/StatMapper.cc
 )
 
 IF (NOT "${ENABLE_RTTI}")
-  target_compile_options(Simo PRIVATE "-fno-rtti")
 endif ()
 
 if ("${ENABLE_RELEASE_LTO}")
@@ -103,9 +106,6 @@ target_include_directories(Simo PRIVATE src)
 
 add_executable(SimoSim src/SimoSim/SimoSim.cc)
 target_link_libraries(SimoSim PRIVATE Simo)
-IF (NOT "${ENABLE_RTTI}")
-  target_compile_options(SimoSim PRIVATE "-fno-rtti")
-endif ()
 
 install(TARGETS Simo)
 install(DIRECTORY include/
@@ -125,9 +125,6 @@ function(create_unit_test_executable name)
     set_tests_properties("${name}" PROPERTIES
             ENVIRONMENT "LLVM_PROFILE_FILE=${CMAKE_BINARY_DIR}/${name}.profraw"
     )
-  endif ()
-  IF (NOT "${ENABLE_RTTI}")
-    target_compile_options("${name}" PRIVATE "-fno-rtti")
   endif ()
 endfunction()
 
@@ -169,9 +166,6 @@ target_link_libraries(test_Statistics PRIVATE Simo)
 add_library(SimoTestPingPongCollection SHARED
         tests/collection/PingPongCollection.cc
 )
-IF (NOT "${ENABLE_RTTI}")
-  target_compile_options(SimoTestPingPongCollection PRIVATE "-fno-rtti")
-endif ()
 target_compile_options(SimoTestPingPongCollection PRIVATE -fno-exceptions)
 # Compile only with includes. Do not link against libraries
 target_link_libraries(SimoTestPingPongCollection PRIVATE $<COMPILE_ONLY:Simo>)

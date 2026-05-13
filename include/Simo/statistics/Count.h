@@ -67,7 +67,7 @@ class SIMO_PUBLIC Count : public Statistic {
     return std::make_unique<Count>(*this);
   }
 
-  [[nodiscard]] glz::generic to_json() const override;
+  [[nodiscard]] glz::generic_u64 dump_representation() const override;
 
  protected:
   int64_t val{0};

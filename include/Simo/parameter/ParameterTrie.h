@@ -15,9 +15,9 @@
 #ifndef SIMO_PARAMETERTRIE_HH
 #define SIMO_PARAMETERTRIE_HH
 
+#include <Simo/compiler/BoostTypeIndexRuntimeCast.h>
 #include <Simo/compiler/Compiler.h>
 
-#include <Simo/compiler/BoostTypeIndexRuntimeCast.hh>
 #include <ranges>
 #include <unordered_map>
 
@@ -57,8 +57,8 @@ class SIMO_PUBLIC ParameterTrie {
     return *this;
   }
 
-  template <typename T, typename ...Args>
-  [[nodiscard]]
+  template <typename T, typename... Args>
+  [[maybe_unused]]
   ParameterTyped<T>& add(const std::string_view name, Args... args) {
     return add_generic<T>(name, true, std::forward<Args>(args)...);
   }
@@ -119,10 +119,11 @@ class SIMO_PUBLIC ParameterTrie {
 
   std::unique_ptr<Parameter> value;
 
-protected:
-  template <typename T, typename ...Args>
-[[nodiscard]]
-ParameterTyped<T>& add_generic(const std::string_view name, bool has_value, Args&&... args) {
+ protected:
+  template <typename T, typename... Args>
+  [[nodiscard]]
+  ParameterTyped<T>& add_generic(const std::string_view name, bool has_value,
+                                 Args&&... args) {
     if (name.empty()) {
       auto ptr = new ParameterTyped<T>(std::forward<Args>(args)...);
       value = std::unique_ptr<Parameter>(ptr);
@@ -130,7 +131,8 @@ ParameterTyped<T>& add_generic(const std::string_view name, bool has_value, Args
       return *ptr;
     }
     const auto [child_name, rest_of_name] = split_string_view(name);
-    return children[std::string(child_name)].add_generic<T>(rest_of_name, has_value, std::forward<Args>(args)...);
+    return children[std::string(child_name)].add_generic<T>(
+        rest_of_name, has_value, std::forward<Args>(args)...);
   }
 
  private:

@@ -58,12 +58,9 @@ class SIMO_PUBLIC Parameters {
     return trie.find<T>(name);
   }
 
-  [[nodiscard]] Parameter::Parameter* get(
-    const std::string& name) const {
+  [[nodiscard]] Parameter::Parameter* get(const std::string& name) const {
     return trie.find(name);
   }
-
-
 
   /// Get a set of parameters in a parameter subtree
   ///
@@ -105,6 +102,11 @@ class SIMO_PUBLIC Module {
   template <typename Stat>
   Stat* get_statistic(const std::string_view name) {
     return statistics.get<Stat>(name);
+  }
+
+  template <typename Function>
+  void visit_statistics(Function f) {
+    statistics.visit(f);
   }
 
  protected:

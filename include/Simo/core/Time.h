@@ -15,16 +15,21 @@
 #ifndef SIMO_TIME_HH
 #define SIMO_TIME_HH
 
+#include <cmath>
 #include <cstdint>
 #include <functional>
-#include <ostream>
-#include <type_traits>
 #include <glaze/core/common.hpp>
+#include <glaze/core/context.hpp>
 #include <glaze/core/custom.hpp>
+#include <glaze/json/generic.hpp>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <string_view>
+#include <type_traits>
 
 #include "../compiler/Compiler.h"
-
-
+#include "glaze/api/impl.hpp"
 
 namespace Simo {
 /// Express time in simulation. The minimum time that can be expressed in
@@ -56,7 +61,7 @@ class SIMO_PUBLIC Time final {
     }
   }
 
-  constexpr Time():Time(0) {}
+  constexpr Time() : Time(0) {}
 
   constexpr Time operator+(const Time& t) const {
     return Time(picoseconds + t.picoseconds);
@@ -113,6 +118,8 @@ class SIMO_PUBLIC Time final {
 
  private:
   std::uint64_t picoseconds;
+
+  friend struct glz::meta<Time>;
 };
 }  // namespace Simo
 
@@ -129,12 +136,39 @@ struct glz::meta<Simo::Time::Unit> {
   static constexpr auto value = enumerate(PS, NS, US, MS, S);
 };
 
-// Defines the mapping to JSON
-template <>
-struct glz::meta<Simo::Time> {
-  static constexpr auto value = glz::custom<
-      [](Simo::Time& t, std::uint64_t ps) { t = Simo::Time(ps); },
-      [](const Simo::Time& t) -> std::uint64_t { return t.to_picoseconds(); }>;
+namespace glz {
+using Simo::Time;
+
+struct TimeValue {
+  std::uint64_t time;
+  Time::Unit unit;
 };
+
+template <auto Format>
+struct from<Format, Time> {
+  template <auto Opts>
+  static void op(Time& value, is_context auto&& ctx, auto&& it, auto&& end) {
+    TimeValue tmp{};
+    parse<Format>::template op<Opts>(tmp, ctx, it, end);
+
+    if (ctx.error != error_code::none) {
+      return;
+    }
+
+    value = Time{tmp.time, tmp.unit};
+  }
+};
+
+template <auto Format>
+struct to<Format, Time> {
+  template <auto Opts>
+  static void op(const Time& value, is_context auto&& ctx, auto&& b,
+                 auto&& ix) noexcept {
+    TimeValue tmp{.time = value.to_picoseconds(), .unit = Time::Unit::PS};
+    serialize<Format>::template op<Opts>(tmp, ctx, b, ix);
+  }
+};
+
+}  // namespace glz
 
 #endif  // SIMO_TIME_HH

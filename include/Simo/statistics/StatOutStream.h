@@ -15,6 +15,8 @@
 #ifndef SIMO_STATOUTSTREAM_HH
 #define SIMO_STATOUTSTREAM_HH
 
+#include <glaze/yaml.hpp>
+
 namespace Simo::Statistics {
 
 class StatMapper;
@@ -45,7 +47,7 @@ class StatOutStream : public StatOutStreamInterface {
  public:
   ~StatOutStream() override = default;
 
-  StatOutStream() : array(glz::generic::array_t{}) {}
+  StatOutStream() : array(glz::generic_u64::array_t{}) {}
 
   std::filesystem::path output_path() const { return output_path_; }
   void output_path(std::filesystem::path path) {
@@ -53,21 +55,22 @@ class StatOutStream : public StatOutStreamInterface {
   }
 
   StatOutStream& operator<<(const Statistic& s) {
-    array.get<glz::generic::array_t>().emplace_back(s.to_json());
+    array.get<glz::generic_u64::array_t>().emplace_back(
+        s.dump_representation());
     return *this;
   }
 
-  void reset() { array = glz::generic::array_t{}; }
+  void reset() { array = glz::generic_u64::array_t{}; }
 
   void generate() {
     std::string buffer;
     // TODO hanndle errors
-    auto _ = glz::write_file_json(array, output_path().c_str(), buffer);
+    auto _ = glz::write_file_yaml(array, output_path().c_str());
   }
 
  private:
   std::filesystem::path output_path_;
-  glz::generic array;
+  glz::generic_u64 array;
 };
 }  // namespace Simo::Statistics
 

@@ -17,6 +17,7 @@
 #include <Simo/parameter/ParameterTrie.h>
 
 #include <boost/test/unit_test.hpp>
+#include <memory>
 #include <string>
 
 BOOST_AUTO_TEST_CASE(ParameterTyped_default_constructor_and_setters) {
@@ -33,22 +34,52 @@ BOOST_AUTO_TEST_CASE(ParameterTyped_default_constructor_and_setters) {
 }
 
 BOOST_AUTO_TEST_CASE(ParameterTyped_type) {
-  using Simo::Parameter::ParameterTyped;
   using Simo::Parameter::Parameter;
+  using Simo::Parameter::ParameterTyped;
 
   ParameterTyped<int> p;
-  BOOST_CHECK_EQUAL(p.type().pretty_name(), "Simo::Parameter::ParameterTyped<int>");
+  BOOST_CHECK_EQUAL(p.type().pretty_name(),
+                    "Simo::Parameter::ParameterTyped<int>");
 }
 
 BOOST_AUTO_TEST_CASE(ParameterTyped_value_constructor) {
   using Simo::Parameter::ParameterTyped;
 
-  ParameterTyped<std::string> p("fast");
-  p.validator([](const std::string& s) {
-    return s == "fast" || s == "slow";
-  });
+  const std::string fast{"fast"};
+  ParameterTyped<std::string> p(fast);
+  p.validator([](const std::string& s) { return s == "fast" || s == "slow"; });
   BOOST_CHECK_EQUAL(p.validate(), true);
   BOOST_CHECK_EQUAL(p.value(), "fast");
+}
+
+BOOST_AUTO_TEST_CASE(ParameterTyped_has_value_setter_clone_and_generic_value) {
+  using Simo::Parameter::Parameter;
+  using Simo::Parameter::ParameterTyped;
+
+  ParameterTyped<int> p;
+  BOOST_CHECK_EQUAL(&p.has_value(true), &p);
+  BOOST_CHECK_EQUAL(p.has_value(), true);
+  BOOST_CHECK_EQUAL(p.validate(), true);
+
+  auto valid_value = glz::read_json<glz::generic_u64>("123");
+  BOOST_REQUIRE(valid_value.has_value());
+  auto generic_result = p.value_from_generic(*valid_value);
+  BOOST_REQUIRE(generic_result.has_value());
+  BOOST_CHECK_EQUAL(generic_result.value(), static_cast<Parameter*>(&p));
+  BOOST_CHECK_EQUAL(p.value(), 123);
+
+  auto clone = p.clone();
+  auto* cloned_int =
+      boost::typeindex::runtime_cast<ParameterTyped<int>*>(clone.get());
+  BOOST_REQUIRE_NE(cloned_int, nullptr);
+  BOOST_CHECK_EQUAL(cloned_int->value(), 123);
+  BOOST_CHECK_EQUAL(cloned_int->has_value(), true);
+
+  ParameterTyped<int> invalid;
+  auto invalid_value = glz::read_json<glz::generic_u64>(R"("not-an-int")");
+  BOOST_REQUIRE(invalid_value.has_value());
+  auto invalid_result = invalid.value_from_generic(*invalid_value);
+  BOOST_CHECK_EQUAL(invalid_result.has_value(), false);
 }
 
 BOOST_AUTO_TEST_CASE(ParameterTyped_has_value_false) {

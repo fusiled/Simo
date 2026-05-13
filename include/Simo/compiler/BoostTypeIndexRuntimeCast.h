@@ -32,4 +32,4 @@
 #pragma GCC diagnostic pop
 #endif
 
-#endif //SIMO_BOOST_TYPE_INDEX_RUNTIME_CAST_HH
+#endif  // SIMO_BOOST_TYPE_INDEX_RUNTIME_CAST_HH

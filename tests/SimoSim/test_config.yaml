@@ -4,10 +4,31 @@ modules:
   - name: ping_module
     type: ping
     parameters:
-      - period: 10
+      - name: period
+        value:
+          time: 10
+          unit: PS
   - name: pong_module
     type: pong
     parameters:
-      - period: 10
+      - name: period
+        value:
+          time: 10
+          unit: PS
+  - name: collector
+    type: collector
+    parameters:
+      - name: start_time
+        value:
+          time: 0
+          unit: NS
+      - name: end_time
+        value:
+          time: 100
+          unit: NS
 connections:
   - ping_module/port: pong_module/port
+simulation:
+  time:
+    time: 100
+    unit: NS

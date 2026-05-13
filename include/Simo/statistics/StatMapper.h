@@ -15,18 +15,22 @@
 #ifndef SIMO_STATMAPPER_HH
 #define SIMO_STATMAPPER_HH
 
-#include <glaze/glaze.hpp>
 #include <memory>
 #include <vector>
 
 #include "./Statistic.h"
+#include "Simo/compiler/Compiler.h"
+
+namespace Simo {
+class Module;
+}
 
 namespace Simo::Statistics {
 
 /// Keep reference of statistics and of a previous values of them
 ///
-/// Usefull for dumping statistics during simulation
-class StatMapper {
+/// Useful for dumping statistics during simulation
+class SIMO_PUBLIC StatMapper {
  public:
   void add(Statistic& stat) { storage.emplace_back(stat.clone(), &stat); }
 
@@ -46,6 +50,19 @@ class StatMapper {
 
  private:
   std::vector<std::pair<std::unique_ptr<Statistic>, Statistic*>> storage;
+};
+
+class SIMO_PUBLIC ModuleStatMapper {
+ public:
+  explicit ModuleStatMapper(Module& m);
+
+  void assign() const { statMapper.assign(); }
+
+  std::vector<std::unique_ptr<Statistic>> compute_diff();
+
+ private:
+  Module& module;
+  StatMapper statMapper;
 };
 
 class StatStorage {

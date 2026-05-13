@@ -19,7 +19,7 @@
 
 #include <expected>
 
-#include "Simo/compiler/BoostTypeIndexRuntimeCast.hh"
+#include "Simo/compiler/BoostTypeIndexRuntimeCast.h"
 #include "Simo/compiler/Compiler.h"
 
 namespace Simo {

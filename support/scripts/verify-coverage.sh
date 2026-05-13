@@ -19,7 +19,7 @@
 BUILD_FOLDER=${1:-.}
 LINE_PERCENTAGE=${2:-80}
 
-IGNORE_REGEX="Count.h"
+IGNORE_REGEX="Count.h|CLI11.hpp"
 
 set -x
 
@@ -72,5 +72,8 @@ if (( ${#files[@]} > 0  )); then
     for file in "${files[@]}"; do
         echo " - $file"
     done
+    echo "To see line code coverage, run llvm-cov show \"${SIMO_LIB_PATH}\" \
+\"-instr-profile=${PROFILE_DATA_PATH}\" \"--ignore-filename-regex=${IGNORE_REGEX}\" \
+<path-to-file>"
     exit 1
 fi

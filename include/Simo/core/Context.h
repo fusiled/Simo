@@ -115,6 +115,13 @@ class SIMO_PUBLIC Context {
   /// Remove a modules from the context before initialization occurs
   void remove(const Module& module);
 
+  template <typename Function>
+  void foreach_module(Function f) const {
+    for (const auto& module : modules | std::views::keys) {
+      f(*module);
+    }
+  }
+
   [[nodiscard]] State get_state() const;
   [[nodiscard]] Time current_time() const;
 

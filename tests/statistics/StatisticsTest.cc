@@ -13,7 +13,10 @@
 // limitations under the License.
 
 #define BOOST_TEST_MODULE Statistics
+#include <Simo/core/Context.h>
 #include <Simo/module/Module.h>
+#include <Simo/module/core/Collector.h>
+#include <Simo/module/core/CoreModules.h>
 #include <Simo/parameter/Parameter.h>
 #include <Simo/port/Port.h>
 #include <Simo/statistics/Count.h>
@@ -41,6 +44,8 @@ class StatisticRecordingModule final : public Simo::Module {
   }
 
   void increment() { ++(*sent_counter_); }
+
+  void increment_by(const int64_t value) { *sent_counter_ += value; }
 
  private:
   Simo::Statistics::Count* sent_counter_ = nullptr;
@@ -204,11 +209,11 @@ BOOST_AUTO_TEST_CASE(stat_out_stream_writes_streamed_statistics_and_resets) {
 
   output.generate();
 
-  const glz::generic::array_t expected = {
-      sent.to_json(),
-      received.to_json(),
+  const glz::generic_u64::array_t expected = {
+      sent.dump_representation(),
+      received.dump_representation(),
   };
-  auto expected_str = glz::write_json(expected);
+  auto expected_str = glz::write_yaml(expected);
   BOOST_REQUIRE(expected_str);
 
   BOOST_REQUIRE(std::filesystem::exists(configured_path));
@@ -245,7 +250,7 @@ BOOST_AUTO_TEST_CASE(stat_mapper_compute_diff_and_assign) {
       BOOST_CHECK_EQUAL(count->value(), -2);
       continue;
     }
-    BOOST_FAIL("Unexpected statistic name: " + count->name());
+    BOOST_FAIL("Unexpected statistic name: " + std::string(count->name()));
   }
   mapper.assign();
 
@@ -264,7 +269,7 @@ BOOST_AUTO_TEST_CASE(stat_mapper_compute_diff_and_assign) {
       BOOST_CHECK_EQUAL(count->value(), 9);
       continue;
     }
-    BOOST_FAIL("Unexpected statistic name: " + count->name());
+    BOOST_FAIL("Unexpected statistic name: " + std::string(count->name()));
   }
 }
 
@@ -306,4 +311,124 @@ BOOST_AUTO_TEST_CASE(ModuleRecordStatisticsInvokesStorageVisitPath) {
       boost::typeindex::runtime_cast<const Count*>(delta_stats.front().get());
   BOOST_REQUIRE_NE(count_ptr, nullptr);
   BOOST_CHECK_EQUAL(count_ptr->value(), 1);
+}
+
+BOOST_AUTO_TEST_CASE(
+    CoreModulesCollectionFactoryCreatesCollectorAndParameters) {
+  const auto collection_with_lib = Simo::Modules::Core::loadCoreModules();
+  const auto* collection = collection_with_lib.get_collection();
+  BOOST_REQUIRE_NE(collection, nullptr);
+  BOOST_CHECK_EQUAL(collection->name, "SimoCoreModules");
+  BOOST_CHECK(collection->version ==
+              Simo::Collections::SimoCollectionVersion(0, 0, 1));
+
+  const auto* factory = collection->get_factory("collector");
+  BOOST_REQUIRE_NE(factory, nullptr);
+  BOOST_CHECK_EQUAL(factory->get_name(), "collector");
+
+  auto collector = factory->get_module();
+  auto params = factory->get_parameters();
+  BOOST_REQUIRE_NE(collector, nullptr);
+  BOOST_REQUIRE_NE(params, nullptr);
+
+  auto start_time_value =
+      glz::read_json<glz::generic_u64>(R"({"time":1,"unit":"NS"})");
+  BOOST_REQUIRE(start_time_value.has_value());
+  auto* start_time = params->get("start_time");
+  BOOST_REQUIRE_NE(start_time, nullptr);
+  auto start_parse_result = start_time->value_from_generic(*start_time_value);
+  BOOST_REQUIRE(start_parse_result.has_value());
+  BOOST_CHECK_EQUAL(start_parse_result.value(), start_time);
+
+  auto end_time_value =
+      glz::read_json<glz::generic_u64>(R"({"time":2,"unit":"NS"})");
+  BOOST_REQUIRE(end_time_value.has_value());
+  auto* end_time = params->get("end_time");
+  BOOST_REQUIRE_NE(end_time, nullptr);
+  BOOST_REQUIRE(end_time->value_from_generic(*end_time_value).has_value());
+
+  auto invalid_time_value =
+      glz::read_json<glz::generic_u64>(R"({"time":"bad","unit":"NS"})");
+  BOOST_REQUIRE(invalid_time_value.has_value());
+  BOOST_CHECK_EQUAL(
+      end_time->value_from_generic(*invalid_time_value).has_value(), false);
+
+  const auto subtree = params->get_subtree("");
+  BOOST_REQUIRE(subtree.has_value());
+  BOOST_CHECK_EQUAL(subtree->get<Simo::Time>("start_time")->value(),
+                    Simo::Time(1, Simo::Time::Unit::NS));
+}
+
+BOOST_AUTO_TEST_CASE(CollectorParametersValidation) {
+  using Simo::Time;
+  using Simo::Modules::Core::Collector;
+
+  Collector::Parameters params;
+  BOOST_CHECK_EQUAL(params.check(), true);
+
+  params.get<Time>("start_time")->value(Time(10));
+  params.get<Time>("end_time")->value(Time(5));
+  BOOST_CHECK_EQUAL(params.check(), false);
+
+  params.get<Time>("end_time")->value(Time(20));
+  BOOST_CHECK_EQUAL(params.check(), true);
+}
+
+BOOST_AUTO_TEST_CASE(CollectorCollectsMatchingModuleStatistics) {
+  using Simo::Context;
+  using Simo::Parameters;
+  using Simo::Time;
+  using Simo::Modules::Core::Collector;
+
+  const auto output_path =
+      std::filesystem::temp_directory_path() / "simo-collector-stats.json";
+  std::filesystem::remove(output_path);
+
+  Context sim_ctx;
+  StatisticRecordingModule recorded_module;
+  StatisticRecordingModule ignored_module;
+  Collector collector;
+
+  Parameters recorded_params;
+  recorded_params.name("recorded_module");
+  Parameters ignored_params;
+  ignored_params.name("ignored_module");
+  Collector::Parameters collector_params;
+  collector_params.name("collector");
+  collector_params.get<Time>("start_time")->value(Time(10));
+  collector_params.get<Time>("end_time")->value(Time(20));
+  collector_params.get<std::string>("module_match_regex")->value("recorded_.*");
+  collector_params.get<std::string>("dump_path")->value(output_path.string());
+
+  sim_ctx.add(recorded_module, recorded_params);
+  sim_ctx.add(ignored_module, ignored_params);
+  sim_ctx.add(collector, collector_params);
+
+  BOOST_REQUIRE(sim_ctx.initialize());
+  sim_ctx.run_at(Time(10));
+  recorded_module.increment_by(3);
+  ignored_module.increment_by(9);
+  sim_ctx.run_at(Time(20));
+
+  BOOST_REQUIRE(std::filesystem::exists(output_path));
+  const auto contents = read_file_contents(output_path);
+  BOOST_CHECK(contents.find("sent") != std::string::npos);
+  BOOST_CHECK(contents.find("3") != std::string::npos);
+  BOOST_CHECK(contents.find("9") == std::string::npos);
+
+  std::filesystem::remove(output_path);
+}
+
+BOOST_AUTO_TEST_CASE(CollectorInitializeFailsWithInvalidParameters) {
+  using Simo::Context;
+  using Simo::Time;
+  using Simo::Modules::Core::Collector;
+
+  Context sim_ctx;
+  Collector collector;
+  Collector::Parameters params;
+  params.get<Time>("start_time")->value(Time(10));
+  params.get<Time>("end_time")->value(Time(5));
+
+  BOOST_CHECK_EQUAL(collector.initialize(sim_ctx, params), false);
 }

@@ -28,7 +28,7 @@
 
 #define CLI11_HAS_CODECVT 0
 #include "CLI11.hpp"
-#include "Config.hh"
+#include "Config.h"
 
 enum RETURN_CODE : int {
   SUCCESS,

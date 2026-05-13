@@ -16,10 +16,11 @@
 
 #ifndef SIMO_CONFIG_HH
 #define SIMO_CONFIG_HH
+#include <Simo/Simo.h>
+
+#include <glaze/json/generic.hpp>
 #include <string>
 #include <vector>
-#include <glaze/json/generic.hpp>
-#include <Simo/Simo.h>
 
 namespace SimoSim::Config {
 
@@ -48,14 +49,12 @@ struct SimulationInfo {
   Simo::Time time;
 };
 
-
 struct Config {
   std::vector<Module> modules;
   std::vector<std::pair<std::string, std::string>> connections;
   SimulationInfo simulation;
 };
 
+}  // namespace SimoSim::Config
 
-}
-
-#endif //SIMO_CONFIG_HH
+#endif  // SIMO_CONFIG_HH

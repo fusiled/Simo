@@ -172,6 +172,39 @@ BOOST_AUTO_TEST_CASE(count_assignment_arithmetic_serialize_and_delta) {
   BOOST_CHECK_EQUAL(delta_ptr->value(), 3);
 }
 
+class TestStatistic final : public Simo::Statistics::Statistic {
+ public:
+  TestStatistic() {}
+
+  std::unique_ptr<Statistic> clone() const override {
+    return std::make_unique<TestStatistic>();
+  }
+
+  void assign_from(const Statistic&) override {}
+
+  glz::generic_u64 dump_representation() const override {
+    return glz::generic_u64{};
+  }
+
+  [[nodiscard]] std::unique_ptr<Statistic> compute_delta(
+      const Statistic&) const override {
+    return std::make_unique<TestStatistic>();
+  }
+
+  ~TestStatistic() override = default;
+};
+
+BOOST_AUTO_TEST_CASE(count_compute_delta_different_type) {
+  using Simo::Statistics::Count;
+
+  Count lhs("lhs", 12);
+
+  TestStatistic rhs;
+
+  auto delta = lhs.compute_delta(rhs);
+  BOOST_CHECK_EQUAL(delta.get(), nullptr);
+}
+
 BOOST_AUTO_TEST_CASE(stat_storage_get) {
   using Simo::Statistics::Count;
   using Simo::Statistics::StatStorage;

@@ -1,6 +1,7 @@
 #include "Simo/core/Context.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <ranges>
 #include <unordered_map>
 
@@ -35,15 +36,17 @@ bool Context::initialize() {
   return true;
 }
 
-void Context::run(const Time& time_delta) {
+std::expected<Context::RunStatus, std::string> Context::run(
+    const Time& time_delta) {
   const Time final_time = currentTime + time_delta;
-  run_at(final_time);
+  return run_at(final_time);
 }
 
-void Context::run_at(const Time& final_time) {
+std::expected<Context::RunStatus, std::string> Context::run_at(
+    const Time& final_time) {
   if (state == State::INITIALIZATION) {
     if (!initialize()) {
-      SIMO_ASSERT(false && "Failed to initialize the simulation");
+      return std::unexpected("Initialization failed");
     }
   }
   state = State::RUNNING;
@@ -54,7 +57,7 @@ void Context::run_at(const Time& final_time) {
       // Next scheduled event is beyond final time.
       // Stop at the desired time
       currentTime = final_time;
-      return;
+      return RunStatus::EVENTS_IN_QUEUE;
     }
     // Advance time to next tick
     currentTime = Time(next_tick);
@@ -65,6 +68,7 @@ void Context::run_at(const Time& final_time) {
     scheduledTasks[currentTime].clear();
   }
   state = State::STOPPED;
+  return RunStatus::STOPPED;
 }
 
 void Context::schedule_at(const Time& time_target,
@@ -97,10 +101,7 @@ void Context::schedule_in(const Time& time_delta,
 
 Context::State Context::get_state() const { return state; }
 
-Time Context::current_time() const {
-  return currentTime;
-  ;
-}
+Time Context::current_time() const { return currentTime; }
 
 void Context::add(Module& m, Parameters& p) { modules.emplace_back(&m, &p); }
 

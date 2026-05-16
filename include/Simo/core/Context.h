@@ -40,27 +40,29 @@ class Parameters;
 class Period;
 using SimulationCallable = std::function<void(Time)>;
 
-enum struct ParameterAdditionStatus : uint8_t {
-  PARAMETER_NEW,
-  PARAMETER_OVERWRITTEN,
-};
-
-enum struct ParameterAdditionError : uint8_t {
-  INVALID_TYPE,
-  SIMULATION_ALREADY_INITIALIZED,
-};
-
-/// Manages scheduled events of the simulation
+/// Manage Module initialization and schedule simulation events
 ///
-/// The initial state of the simulation is INITIALIZATION, in which events can
-/// be scheduled with any time. After the simulation starts (ie a call to a run*
+/// The initial state of the simulation is INITIALIZATION. In this phase:
+/// - Modules can be added
+/// - Events can be scheduled with any time.
+/// After the simulation starts (ie a call to a run*
 /// method is performed), the state becomes RUNNING. In this state, events can
 /// only be scheduled for a time in the future. The current time can be probed
 /// with current_time() method. When no events are schedules, the state
 /// transitions to STOPPED. New events can be scheduled even in this state
 class SIMO_PUBLIC Context {
  public:
-  enum struct State : uint8_t { INITIALIZATION, RUNNING, STOPPED };
+  enum struct State : uint8_t {
+    INITIALIZATION,
+    PORT_CONNECTION,
+    RUNNING,
+    STOPPED
+  };
+
+  enum struct RunStatus : uint8_t {
+    EVENTS_IN_QUEUE,
+    STOPPED,
+  };
 
   Context();
 
@@ -78,12 +80,12 @@ class SIMO_PUBLIC Context {
   /// current_time will be t + time_delta at the end of the function
   /// If the context is not initialized, the initialize method is going
   /// to be called before the execution
-  void run(const Time& time_delta);
+  std::expected<RunStatus, std::string> run(const Time& time_delta);
 
   /// Run at the time expressed in time_target
   ///
   /// Run the simulation untile time_target is reached.
-  void run_at(const Time& final_time);
+  std::expected<RunStatus, std::string> run_at(const Time& final_time);
 
   /// Schedule event at time_target time
   void schedule_at(const Time& time_target, const SimulationCallable& callable);

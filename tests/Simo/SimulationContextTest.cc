@@ -32,6 +32,16 @@ class InitTrackingModule final : public Simo::Module {
   bool was_initialized{false};
 };
 
+class FailingInitModule final : public Simo::Module {
+ public:
+  bool initialize(Simo::Context&, const Simo::Parameters&) override {
+    initialize_calls++;
+    return false;
+  }
+
+  std::size_t initialize_calls{0};
+};
+
 BOOST_AUTO_TEST_CASE(SimulationContextOneSchedule) {
   using Simo::Context;
   using Simo::Time;
@@ -146,6 +156,42 @@ BOOST_AUTO_TEST_CASE(ContextModuleAddRemoveAffectsInitializationLifecycle) {
 
   BOOST_CHECK_EQUAL(kept_module.name(), "tracked_module");
   BOOST_CHECK_EQUAL(&kept_module.sim_ctx(), &sim_ctx);
+}
+
+BOOST_AUTO_TEST_CASE(
+    ContextInitializeReturnsFalseWhenModuleInitializationFails) {
+  using Simo::Context;
+  using Simo::Parameters;
+
+  Context sim_ctx;
+  Parameters module_params;
+  FailingInitModule failing_module;
+
+  sim_ctx.add(failing_module, module_params);
+
+  BOOST_CHECK_EQUAL(sim_ctx.initialize(), false);
+  BOOST_CHECK_EQUAL(failing_module.initialize_calls, 1U);
+  BOOST_CHECK(sim_ctx.get_state() == Context::State::INITIALIZATION);
+}
+
+BOOST_AUTO_TEST_CASE(ContextSchedulesRepeatedFutureTickWhileRunning) {
+  using Simo::Context;
+  using Simo::Time;
+
+  Context sim_ctx;
+  std::size_t calls_at_five = 0;
+
+  sim_ctx.schedule_at(Time::one, [&] {
+    sim_ctx.schedule_at(Time(5), [&](const Time t) {
+      BOOST_CHECK_EQUAL(t.to_picoseconds(), 5U);
+      ++calls_at_five;
+    });
+    sim_ctx.schedule_at(Time(5), [&] { ++calls_at_five; });
+  });
+
+  sim_ctx.run_at(Time(6));
+
+  BOOST_CHECK_EQUAL(calls_at_five, 2U);
 }
 
 BOOST_AUTO_TEST_CASE(ContextAddParameterTemplateInstantiations) {

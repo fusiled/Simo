@@ -40,7 +40,10 @@ esac
 SIMO_LIB_PATH="${BUILD_FOLDER}/libSimo.${SO_SUFFIX}"
 PROFILE_DATA_PATH="${BUILD_FOLDER}/default.profdata"
 
-mapfile -t profile_inputs < <(find "${BUILD_FOLDER}" -maxdepth 1 -type f -name "*.profraw" | sort)
+profile_inputs=()
+while IFS= read -r profile_input; do
+    profile_inputs+=("${profile_input}")
+done < <(find "${BUILD_FOLDER}" -maxdepth 1 -type f -name "*.profraw" | sort)
 if (( ${#profile_inputs[@]} == 0 )); then
     echo "No .profraw files found in ${BUILD_FOLDER}"
     exit 1
@@ -53,27 +56,30 @@ llvm-profdata merge "${profile_inputs[@]}" -o "${PROFILE_DATA_PATH}"
 llvm-cov report "${SIMO_LIB_PATH}" "-instr-profile=${PROFILE_DATA_PATH}" "--line-coverage-lt=${LINE_PERCENTAGE}" \
     --ignore-filename-regex="${IGNORE_REGEX}"
 
-mapfile -t files < <(
-                      llvm-cov export "${SIMO_LIB_PATH}" "-instr-profile=${PROFILE_DATA_PATH}" \
-                      "--ignore-filename-regex=${IGNORE_REGEX}" \
-                      | jq -r "
-                          .data[].files[]
-                          | select(
-                              .summary.lines.percent < ${LINE_PERCENTAGE}
-                              and .summary.regions.count > 0
-                            )
-                          | .filename
-                        "
-                    )
+files=()
+while IFS= read -r file; do
+    files+=("${file}")
+done < <(
+          llvm-cov export "${SIMO_LIB_PATH}" "-instr-profile=${PROFILE_DATA_PATH}" \
+          "--ignore-filename-regex=${IGNORE_REGEX}" \
+          | jq -r "
+              .data[].files[]
+              | select(
+                  .summary.regions.percent < ${LINE_PERCENTAGE}
+                  and .summary.regions.count > 0
+                )
+              | .filename
+            "
+        )
 
 set +x
 if (( ${#files[@]} > 0  )); then
-    echo "The following files do not meet the criteria of ${LINE_PERCENTAGE}% line code coverage:"
+    echo "The following files do not meet the criteria of ${LINE_PERCENTAGE}% of regions covered:"
     for file in "${files[@]}"; do
         echo " - $file"
     done
     echo "To see line code coverage, run llvm-cov show \"${SIMO_LIB_PATH}\" \
-\"-instr-profile=${PROFILE_DATA_PATH}\" \"--ignore-filename-regex=${IGNORE_REGEX}\" \
+\"-instr-profile=${PROFILE_DATA_PATH}\" \"-ignore-filename-regex=${IGNORE_REGEX}\" -show-regions \
 <path-to-file>"
     exit 1
 fi

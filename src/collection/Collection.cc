@@ -24,6 +24,86 @@ static_assert(std::is_standard_layout_v<Factory>,
               "Factory must be standard layout");
 static_assert(std::is_standard_layout_v<SimoCollection>,
               "Factory must be standard layout");
+std::string_view Factory::get_name() const noexcept { return {name}; }
+
+Module* Factory::get_module_unsafe() const { return get_module_function(); }
+
+Parameters* Factory::get_parameters_unsafe() const {
+  return get_parameters_function();
+}
+
+std::unique_ptr<Module> Factory::get_module() const {
+  return std::unique_ptr<Module>(get_module_function());
+}
+
+std::unique_ptr<Parameters> Factory::get_parameters() const {
+  return std::unique_ptr<Parameters>(get_parameters_function());
+}
+
+bool SimoCollectionVersion::operator==(
+    const SimoCollectionVersion& simo_collection_version) const {
+  return major == simo_collection_version.major &&
+         minor == simo_collection_version.minor &&
+         patch == simo_collection_version.patch;
+}
+
+void SimoCollection::check() const noexcept {
+  // TODO implement checks on no duplicate names in factory list
+}
+
+const Factory* SimoCollection::get_factory(
+    const std::string_view& factory_name) const noexcept {
+  for (unsigned i = 0; i < factory_list_size; ++i) {
+    if (factory_list[i].get_name() == factory_name) {
+      return &factory_list[i];
+    }
+  }
+  return nullptr;
+}
+
+std::vector<std::pair<std::string_view, const Factory*>>
+SimoCollection::get_factory_pairs() const noexcept {
+  std::vector<std::pair<std::string_view, const Factory*>> factory_pairs;
+  factory_pairs.reserve(factory_list_size);
+  for (unsigned i = 0; i < factory_list_size; ++i) {
+    factory_pairs.emplace_back(factory_list[i].get_name(), factory_list + i);
+  }
+  return factory_pairs;
+}
+
+CollectionWithLib::CollectionWithLib(const std::filesystem::path& path,
+                                     const SimoCollection* collection,
+                                     void* lib_handle) noexcept
+    : path(path), collection(collection), lib_handle(lib_handle) {}
+
+CollectionWithLib::CollectionWithLib(CollectionWithLib&& other) noexcept
+    : path(std::move(other.path)),
+      collection(other.collection),
+      lib_handle(std::exchange(other.lib_handle, nullptr)) {}
+
+CollectionWithLib& CollectionWithLib::operator=(
+    CollectionWithLib&& other) noexcept {
+  if (this != &other) {
+    collection = std::exchange(other.collection, nullptr);
+    if (lib_handle != nullptr) {
+      dlclose(lib_handle);
+    }
+    lib_handle = std::exchange(other.lib_handle, nullptr);
+  }
+  path = other.path;
+  other.path = "";
+  return *this;
+}
+
+CollectionWithLib::~CollectionWithLib() {
+  if (lib_handle != nullptr) {
+    dlclose(lib_handle);
+  }
+}
+
+const SimoCollection* CollectionWithLib::get_collection() const noexcept {
+  return collection;
+}
 
 std::expected<CollectionWithLib, GetCollectionError> simo_get_collection(
     const std::filesystem::path& path_to_collection) {

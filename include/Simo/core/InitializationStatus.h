@@ -17,6 +17,8 @@
 #ifndef SIMO_INITIALIZATIONSTATUS_H
 #define SIMO_INITIALIZATIONSTATUS_H
 
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "Simo/compiler/Compiler.h"

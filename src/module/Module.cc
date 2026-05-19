@@ -46,10 +46,13 @@ std::string_view Parameters::name() const { return name_; }
 
 void Parameters::name(const std::string_view name) { name_ = name; }
 
-bool Module::initialize(Context& sim_ctx_v, const Parameters& parameters) {
+InitializationStatus Module::initialize(Context& sim_ctx_v,
+                                        const Parameters& parameters) {
   sim_ctx_ = &sim_ctx_v;
   name_ = parameters.name();
-  return parameters.check();
+  return parameters.check()
+             ? InitializationStatus::ok(this)
+             : InitializationStatus(this, {"Parameter check failed"});
 }
 
 std::string_view Module::name() const { return name_; }

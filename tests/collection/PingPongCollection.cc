@@ -44,10 +44,11 @@ class PingPongParameters : public Simo::Parameters {
 
 class PingModule : public Simo::Module {
  public:
-  bool initialize(Simo::Context& sim_ctx_p,
-                  const Simo::Parameters& parameters) override {
-    if (!Module::initialize(sim_ctx_p, parameters)) {
-      return false;
+  Simo::InitializationStatus initialize(
+      Simo::Context& sim_ctx_p, const Simo::Parameters& parameters) override {
+    if (const auto status = Module::initialize(sim_ctx_p, parameters);
+        !status.success()) {
+      return status;
     }
     period = parameters.get<Simo::Time>("period")->value();
     port =
@@ -56,13 +57,13 @@ class PingModule : public Simo::Module {
 
     sim_ctx().schedule_at(Simo::Time::zero, [this]() { update_state(); });
     sim_ctx().schedule_at(period / 2, [this]() { try_send(); });
-    return true;
+    return Simo::InitializationStatus::ok(this);
   }
 
   void update_state() {
     sim_ctx().schedule_in(period, [this]() { update_state(); });
     send_message = start_send;
-    if (const auto val = port->peek_in();
+    if (const auto* const val = port->peek_in();
         val != nullptr && *val == PingPongMessage::PONG) {
       port->clear_in();
       send_message = true;
@@ -88,10 +89,11 @@ class PingModule : public Simo::Module {
 
 class PongModule : public Simo::Module {
  public:
-  bool initialize(Simo::Context& sim_ctx_v,
-                  const Simo::Parameters& parameters) override {
-    if (!Module::initialize(sim_ctx_v, parameters)) {
-      return false;
+  Simo::InitializationStatus initialize(
+      Simo::Context& sim_ctx_v, const Simo::Parameters& parameters) override {
+    if (const auto status = Module::initialize(sim_ctx_v, parameters);
+        !status.success()) {
+      return status;
     }
     period = parameters.get<Simo::Time>("period")->value();
     port =
@@ -100,7 +102,7 @@ class PongModule : public Simo::Module {
     sim_ctx().schedule_at(Simo::Time::zero, [this]() { update_state(); });
     sim_ctx().schedule_at(period / 2, [this]() { try_send(); });
 
-    return true;
+    return Simo::InitializationStatus::ok(this);
   }
 
   void update_state() {

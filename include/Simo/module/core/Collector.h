@@ -40,10 +40,11 @@ class Collector : public Module {
     }
   };
 
-  bool initialize(Context& sim_ctx_v,
-                  const Simo::Parameters& parameters) override {
-    if (!Module::initialize(sim_ctx_v, parameters)) {
-      return false;
+  InitializationStatus initialize(Context& sim_ctx_v,
+                                  const Simo::Parameters& parameters) override {
+    if (const auto status = Module::initialize(sim_ctx_v, parameters);
+        !status.success()) {
+      return status;
     }
     const auto start_time = parameters.get<Time>("start_time")->value();
     const auto end_time = parameters.get<Time>("end_time")->value();
@@ -57,7 +58,7 @@ class Collector : public Module {
         add_module(const_cast<Module*>(&m));
       }
     });
-    return true;
+    return InitializationStatus::ok(this);
   }
 
   void add_module(Module* module) { modules.push_back(module); }

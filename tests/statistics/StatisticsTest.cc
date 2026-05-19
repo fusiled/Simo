@@ -437,7 +437,8 @@ BOOST_AUTO_TEST_CASE(CollectorCollectsMatchingModuleStatistics) {
   sim_ctx.add(ignored_module, ignored_params);
   sim_ctx.add(collector, collector_params);
 
-  BOOST_REQUIRE(sim_ctx.initialize());
+  const auto status = sim_ctx.initialize();
+  BOOST_REQUIRE_EQUAL(status.success(), true);
   sim_ctx.run_at(Time(10));
   recorded_module.increment_by(3);
   ignored_module.increment_by(9);
@@ -463,5 +464,5 @@ BOOST_AUTO_TEST_CASE(CollectorInitializeFailsWithInvalidParameters) {
   params.get<Time>("start_time")->value(Time(10));
   params.get<Time>("end_time")->value(Time(5));
 
-  BOOST_CHECK_EQUAL(collector.initialize(sim_ctx, params), false);
+  BOOST_CHECK_EQUAL(collector.initialize(sim_ctx, params).success(), false);
 }

@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(dynamic_load_test) {
   sim_ctx.add(*ping_module, *params);
   sim_ctx.add(*pong_module, *params);
 
-  BOOST_CHECK_EQUAL(sim_ctx.initialize(), true);
+  BOOST_CHECK_EQUAL(sim_ctx.initialize().success(), true);
 
   auto* ping_port = ping_module->get_port("port");
   BOOST_CHECK_NE(ping_port, nullptr);
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE(dynamic_load_and_factory_safe_unsafe_apis) {
 
   Simo::Context sim_ctx;
   sim_ctx.add(*raw_module, *raw_params);
-  BOOST_CHECK_EQUAL(sim_ctx.initialize(), true);
+  BOOST_CHECK_EQUAL(sim_ctx.initialize().success(), true);
   sim_ctx.run_at(Time::one);
 }
 

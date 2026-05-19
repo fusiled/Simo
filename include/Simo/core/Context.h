@@ -24,6 +24,7 @@
 #include "./Time.h"
 #include "./internal/RadixHeap.h"
 #include "Simo/compiler/Compiler.h"
+#include "Simo/module/Module.h"
 #include "Simo/parameter/ParameterTrie.h"
 
 namespace Simo {
@@ -56,7 +57,8 @@ class SIMO_PUBLIC Context {
     INITIALIZATION,
     PORT_CONNECTION,
     RUNNING,
-    STOPPED
+    STOPPED,
+    ERROR
   };
 
   enum struct RunStatus : uint8_t {
@@ -72,7 +74,7 @@ class SIMO_PUBLIC Context {
   ///
   /// This can be done before the first call to run method
   [[nodiscard]]
-  bool initialize();
+  InitializationStatus initialize();
 
   /// Run for the time expressed in time_delta
   ///
@@ -80,12 +82,12 @@ class SIMO_PUBLIC Context {
   /// current_time will be t + time_delta at the end of the function
   /// If the context is not initialized, the initialize method is going
   /// to be called before the execution
-  std::expected<RunStatus, std::string> run(const Time& time_delta);
+  std::expected<RunStatus, InitializationStatus> run(const Time& time_delta);
 
   /// Run at the time expressed in time_target
   ///
   /// Run the simulation untile time_target is reached.
-  std::expected<RunStatus, std::string> run_at(const Time& final_time);
+  std::expected<RunStatus, InitializationStatus> run_at(const Time& final_time);
 
   /// Schedule event at time_target time
   void schedule_at(const Time& time_target, const SimulationCallable& callable);

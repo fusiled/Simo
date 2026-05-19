@@ -21,8 +21,8 @@
 
 class InitTrackingModule final : public Simo::Module {
  public:
-  bool initialize(Simo::Context& sim_ctx_v,
-                  const Simo::Parameters& parameters) override {
+  Simo::InitializationStatus initialize(
+      Simo::Context& sim_ctx_v, const Simo::Parameters& parameters) override {
     initialize_calls++;
     was_initialized = true;
     return Module::initialize(sim_ctx_v, parameters);
@@ -34,9 +34,10 @@ class InitTrackingModule final : public Simo::Module {
 
 class FailingInitModule final : public Simo::Module {
  public:
-  bool initialize(Simo::Context&, const Simo::Parameters&) override {
+  Simo::InitializationStatus initialize(Simo::Context&,
+                                        const Simo::Parameters&) override {
     initialize_calls++;
-    return false;
+    return Simo::InitializationStatus(this, {"Initialization failed"});
   }
 
   std::size_t initialize_calls{0};
@@ -169,9 +170,9 @@ BOOST_AUTO_TEST_CASE(
 
   sim_ctx.add(failing_module, module_params);
 
-  BOOST_CHECK_EQUAL(sim_ctx.initialize(), false);
+  BOOST_CHECK_EQUAL(sim_ctx.initialize().success(), false);
   BOOST_CHECK_EQUAL(failing_module.initialize_calls, 1U);
-  BOOST_CHECK(sim_ctx.get_state() == Context::State::INITIALIZATION);
+  BOOST_CHECK(sim_ctx.get_state() == Context::State::ERROR);
 }
 
 BOOST_AUTO_TEST_CASE(ContextSchedulesRepeatedFutureTickWhileRunning) {

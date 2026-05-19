@@ -13,13 +13,15 @@ namespace Simo {
 
 Context::Context() : nextTickHeap(new Internal::RadixHeap()) {}
 
-bool Context::initialize() {
+InitializationStatus Context::initialize() {
   // TODO add failure returns upon initialization. Need to propagate the error
   //  to the caller of run* methods, maybe with an expected<>, or by throwing
   //  an exception
+  InitializationStatus status(nullptr);
   for (auto& [module, params] : modules) {
-    if (!module->initialize(*this, *params)) {
-      return false;
+    if (const auto module_status = module->initialize(*this, *params);
+        !module_status.success()) {
+      status.emplace_sub_error(module_status);
     }
   }
   // Need to add all the times in order to the heap
@@ -32,21 +34,21 @@ bool Context::initialize() {
     nextTickHeap->push(t.to_picoseconds());
   }
 
-  state = State::RUNNING;
-  return true;
+  state = status.success() ? State::RUNNING : State::ERROR;
+  return status;
 }
 
-std::expected<Context::RunStatus, std::string> Context::run(
+std::expected<Context::RunStatus, InitializationStatus> Context::run(
     const Time& time_delta) {
   const Time final_time = currentTime + time_delta;
   return run_at(final_time);
 }
 
-std::expected<Context::RunStatus, std::string> Context::run_at(
+std::expected<Context::RunStatus, InitializationStatus> Context::run_at(
     const Time& final_time) {
   if (state == State::INITIALIZATION) {
-    if (!initialize()) {
-      return std::unexpected("Initialization failed");
+    if (const auto status = initialize(); !status.success()) {
+      return std::unexpected(status);
     }
   }
   state = State::RUNNING;

@@ -19,14 +19,15 @@
 
 class TestModule : public Simo::Module {
  public:
-  bool initialize(Simo::Context& ctx, const Simo::Parameters& p) override {
-    if (!Module::initialize(ctx, p)) {
-      return false;
+  Simo::InitializationStatus initialize(Simo::Context& ctx,
+                                        const Simo::Parameters& p) override {
+    if (const auto status = Module::initialize(ctx, p); !status.success()) {
+      return status;
     }
     period = p.get<Simo::Time>("period")->value();
     counter = &create_statistic<Simo::Statistics::Count>("counter");
     sim_ctx().schedule_at(Simo::Time::zero, [this]() { update_state(); });
-    return true;
+    return Simo::InitializationStatus::ok(this);
   }
 
   Simo::Time period = Simo::Time::zero;
@@ -59,8 +60,8 @@ BOOST_AUTO_TEST_CASE(SimpleLoop) {
   TestModule test_module;
   sim_ctx.add(test_module, params);
 
-  const bool initialize_success = sim_ctx.initialize();
-  BOOST_REQUIRE_EQUAL(initialize_success, true);
+  const auto initialize_success = sim_ctx.initialize();
+  BOOST_REQUIRE(initialize_success);
   sim_ctx.run_at(Time::one);
   BOOST_CHECK_EQUAL(sim_ctx.current_time(), Time::one);
   BOOST_CHECK_EQUAL(test_module.counter->value(), 1);
@@ -85,6 +86,6 @@ BOOST_AUTO_TEST_CASE(InitializationFailure) {
   TestModule test_module;
   sim_ctx.add(test_module, params);
 
-  const bool initialize_success = sim_ctx.initialize();
-  BOOST_REQUIRE_EQUAL(initialize_success, false);
+  const auto initialize_success = sim_ctx.initialize();
+  BOOST_REQUIRE(!initialize_success);
 }

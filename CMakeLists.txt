@@ -62,6 +62,7 @@ add_library(Simo SHARED
         src/statistics/Count.cc
         src/module/core/CoreModules.cc
         src/statistics/StatMapper.cc
+        src/core/InitializationStatus.cc
 )
 
 IF (NOT "${ENABLE_RTTI}")

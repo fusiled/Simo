@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "Simo/core/InitializationStatus.h"
 #include "Simo/parameter/ParameterTrie.h"
 #include "Simo/port/Port.h"
 #include "Simo/statistics/StatMapper.h"
@@ -86,7 +87,8 @@ class SIMO_PUBLIC Module {
   /// Derived classes can call <base_class>::initialize to initialize
   /// the attributes of the base class
   [[nodiscard]]
-  virtual bool initialize(Context& sim_ctx_v, const Parameters& parameters);
+  virtual InitializationStatus initialize(Context& sim_ctx_v,
+                                          const Parameters& parameters);
 
   [[nodiscard]] std::string_view name() const;
 

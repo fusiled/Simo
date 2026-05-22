@@ -24,6 +24,7 @@ option(DEBUG_CMAKE "Enable debug output from CMake" OFF)
 option(ENABLE_COVERAGE "Enable code coverage build" OFF)
 option(ENABLE_RELEASE_LTO "Enable link-time optimization for release builds" ON)
 option(ENABLE_RTTI "Enable RTTI to build libSimo" OFF)
+option(ENABLE_DOCUMENTATION "Build Documentation" OFF)
 
 
 add_compile_options("-fno-rtti")
@@ -202,3 +203,20 @@ add_dependencies(test_Collection SimoTestPingPongCollection_stamp)
 set_source_files_properties(tests/collection/CollectionTest.cc PROPERTIES
         OBJECT_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/SimoTestPingPongCollection_is_built
 )
+
+
+if (ENABLE_DOCUMENTATION)
+  find_package(Doxygen REQUIRED)
+
+  set(DOCS_BUILD_DIR ${CMAKE_BINARY_DIR}/docs)
+
+  set(DOXYGEN_GENERATE_HTML YES)
+  set(BUILTIN_STL_SUPPORT YES)
+  set(DOXYGEN_OUTPUT_DIRECTORY ${DOCS_BUILD_DIR}/doxygen)
+  set(DOXYGEN_XML_INDEX_FILE ${DOCS_BUILD_DIR}/doxygen/xml/index.xml)
+
+  doxygen_add_docs(
+          doxygen_docs
+          include src docs ${CMAKE_CURRENT_SOURCE_DIR}/README.md tests
+  )
+endif()

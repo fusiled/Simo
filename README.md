@@ -18,6 +18,7 @@ Build dependencies:
 - Boost ([Boost.Test](https://www.boost.org/libs/test),
 [Boost.TypeIndex](https://www.boost.org/libs/type_index))
 - [Glaze](https://github.com/stephenberry/glaze)
+- [Doxygen](https://www.doxygen.nl/index.html) (for documentation)
 
 Library usage dependencies (headers-only):
 - Boost ([Boost.TypeIndex](https://www.boost.org/libs/type_index))

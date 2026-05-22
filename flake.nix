@@ -63,6 +63,7 @@
             clang-tools
             llvm
             glaze
+            doxygen
           ];
         };
       }

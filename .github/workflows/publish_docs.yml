@@ -32,7 +32,7 @@ jobs:
         id: deployment
         uses: actions/upload-pages-artifact@v5.0.0 # or specific "vX.X.X" version tag for this action
         with:
-          path: ${{github.workspace}}/build/docs/doxygen
+          path: ${{github.workspace}}/build/docs/doxygen/html
 
   # Deployment job
   deploy:

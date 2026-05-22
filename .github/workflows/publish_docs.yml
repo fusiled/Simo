@@ -22,7 +22,7 @@ jobs:
       - name: CMake configure
         run: nix develop --command cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DENABLE_DOCUMENTATION=ON
       - name: CMake Build
-        run: nix develop --command cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j doxygen_docs
+        run: nix develop --command cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j --target doxygen_docs
       - name: Upload static files as artifact
         id: deployment
         uses: actions/upload-pages-artifact@v5.0.0 # or specific "vX.X.X" version tag for this action

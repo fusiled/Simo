@@ -1,0 +1,42 @@
+name: "Publish documentation to Pages"
+
+
+on:
+  push:
+    branches:
+      - main
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  # Build job
+  build:
+    # Specify runner +  build & upload the static files as an artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: CMake configure
+        run: nix develop --command cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DENABLE_DOCUMENTATION=ON
+      - name: CMake Build
+        run: nix develop --command cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j doxygen_docs
+      - name: Upload static files as artifact
+        id: deployment
+        uses: actions/upload-pages-artifact@v5.0.0 # or specific "vX.X.X" version tag for this action
+        with:
+          path: ${{github.workspace}}/build/docs/doxygen
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

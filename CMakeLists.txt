@@ -23,7 +23,6 @@ option(PORTABLE_BUILD "Be verbose on build and turn warnings into errors for the
 option(DEBUG_CMAKE "Enable debug output from CMake" OFF)
 option(ENABLE_COVERAGE "Enable code coverage build" OFF)
 option(ENABLE_RELEASE_LTO "Enable link-time optimization for release builds" ON)
-option(ENABLE_RTTI "Enable RTTI to build libSimo" OFF)
 option(ENABLE_DOCUMENTATION "Build Documentation" OFF)
 
 
@@ -65,9 +64,6 @@ add_library(Simo SHARED
         src/statistics/StatMapper.cc
         src/core/InitializationStatus.cc
 )
-
-IF (NOT "${ENABLE_RTTI}")
-endif ()
 
 if ("${ENABLE_RELEASE_LTO}")
   set_target_properties(Simo PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)

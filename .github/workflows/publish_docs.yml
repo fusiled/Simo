@@ -12,6 +12,7 @@ env:
 permissions:
   id-token: write  # Required for OIDC
   contents: read   # Often required to checkout code
+  pages: write
 
 jobs:
   # Build job

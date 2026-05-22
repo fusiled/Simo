@@ -11,6 +11,10 @@ This library has been created after years of experience with computer systems
 simulators (both in research and in industry) and it tries to create something that
 it is missing: a simple, easy to use library that does what you need.
 
+## Documentation
+
+Guides (Markdown files inside `docs` folder) and Doxygen built from the main branch are stored in **[GitHub Pages](https://fusiled.github.io/Simo/)** .
+
 ## Build
 
 Build dependencies:
@@ -26,10 +30,10 @@ Library usage dependencies (headers-only):
 
 The build will produce `libSimo`.
 
-The nix flake simplifies the setting up the dependencies. With nix installed you can:
+The [nix](https://nixos.org/learn/) flake simplifies the set up of the dependencies. With nix installed you can:
 - Build the package with `nix build`
 - Run `nix develop` to enter a virtual environment with all the required tools installed.
-The GitHub actions runs entering the virtual environment of `nix develop`.
+The GitHub actions run entering the virtual environment of `nix develop`.
 
 ## Features
 
@@ -56,8 +60,6 @@ This can be achieved with:
 ## To Do
 - Create a collector with periodic window collection functionality
 - Create logging system for components 
-- More documentation and examples 
-- Error propagation upon module initialization 
+- More documentation and examples  
 - Error config in Simo::Context 
-- Create a generic executable that can have an input yaml to describe components, parameters and connections 
 - Benchmark Simo against Gem5 and SystemC

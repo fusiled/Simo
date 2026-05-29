@@ -206,13 +206,14 @@ if (ENABLE_DOCUMENTATION)
 
   set(DOCS_BUILD_DIR ${CMAKE_BINARY_DIR}/docs)
 
+  set(DOXYGEN_FILE_PATTERNS "*.h" "*.cc" "*.md")
   set(DOXYGEN_GENERATE_HTML YES)
-  set(BUILTIN_STL_SUPPORT YES)
+  set(DOXYGEN_BUILTIN_STL_SUPPORT YES)
   set(DOXYGEN_OUTPUT_DIRECTORY ${DOCS_BUILD_DIR}/doxygen)
-  set(DOXYGEN_XML_INDEX_FILE ${DOCS_BUILD_DIR}/doxygen/xml/index.xml)
+  set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 
   doxygen_add_docs(
           doxygen_docs
-          include src docs ${CMAKE_CURRENT_SOURCE_DIR}/README.md tests
+          include src docs tests "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
   )
 endif()

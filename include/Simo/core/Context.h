@@ -27,6 +27,7 @@
 #include "Simo/module/Module.h"
 #include "Simo/parameter/ParameterTrie.h"
 
+/// General namespace for Simo
 namespace Simo {
 
 namespace Parameter {

@@ -15,6 +15,7 @@
 #include <Simo/Simo.h>
 
 #include <array>
+#include <boost/test/detail/log_level.hpp>
 #include <cstdint>
 #include <print>
 
@@ -39,6 +40,8 @@ class PingPongParameters : public Simo::Parameters {
     // Declare parameters in constructor
     trie.add_unset<Simo::Time>("period").validator(
         [](const auto& t) { return t > Simo::Time::one; });
+    trie.add<std::string>("log_level", "WARNING");
+    trie.add<std::filesystem::path>("log_file", "Simo.log");
   }
 };
 
@@ -50,6 +53,8 @@ class PingModule : public Simo::Module {
         !status.success()) {
       return status;
     }
+    log_setup(parameters.get<std::filesystem::path>("log_file")->value());
+    log_level(parameters.get<std::string>("log_level")->value());
     period = parameters.get<Simo::Time>("period")->value();
     port =
         &create_port<Simo::Ports::BidirectionalPort<PingPongMessage>>("port");
@@ -73,6 +78,7 @@ class PingModule : public Simo::Module {
   void try_send() {
     sim_ctx().schedule_in(period, [this]() { try_send(); });
     if (send_message) {
+      log(Simo::Log::LogLevel::INFO, []() { return "Send PING"; });
       port->send_out(PingPongMessage::PING);
       ++(*num_msg_sent);
       start_send = false;
@@ -96,6 +102,8 @@ class PongModule : public Simo::Module {
       return status;
     }
     period = parameters.get<Simo::Time>("period")->value();
+    log_setup(parameters.get<std::filesystem::path>("log_file")->value());
+    log_level(parameters.get<std::string>("log_level")->value());
     port =
         &create_port<Simo::Ports::BidirectionalPort<PingPongMessage>>("port");
     num_msg_sent = &create_statistic<Simo::Statistics::Count>("num_msg_sent");
@@ -118,6 +126,7 @@ class PongModule : public Simo::Module {
   void try_send() {
     sim_ctx().schedule_in(period, [this]() { try_send(); });
     if (send_message) {
+      log(Simo::Log::LogLevel::INFO, []() { return "Send PONG"; });
       port->send_out(PingPongMessage::PONG);
       ++(*num_msg_sent);
     }

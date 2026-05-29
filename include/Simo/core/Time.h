@@ -171,4 +171,12 @@ struct to<Format, Time> {
 
 }  // namespace glz
 
+template <>
+struct std::formatter<Simo::Time> : std::formatter<std::string> {
+  auto format(Simo::Time t, format_context& ctx) const {
+    return formatter<string>::format(std::format("{} ps", t.to_picoseconds()),
+                                     ctx);
+  }
+};
+
 #endif  // SIMO_TIME_HH

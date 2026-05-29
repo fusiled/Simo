@@ -34,8 +34,8 @@ if (ENABLE_COVERAGE)
     add_compile_options("--coverage" "-Og" "-g")
     add_link_options("--coverage")
   elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options("-Og" "-g" "--coverage" "-fprofile-instr-generate" "-fcoverage-mapping")
-    add_link_options("-fprofile-instr-generate" "--coverage" "-fcoverage-mapping")
+    add_compile_options("-Og" "-g" "-fprofile-instr-generate" "-fcoverage-mapping")
+    add_link_options("-fprofile-instr-generate" "-fcoverage-mapping")
   else()
     message(WARNING "Code coverage not supported for this compiler.")
   endif ()
@@ -63,6 +63,7 @@ add_library(Simo SHARED
         src/module/core/CoreModules.cc
         src/statistics/StatMapper.cc
         src/core/InitializationStatus.cc
+        src/core/Log.cc
 )
 
 if ("${ENABLE_RELEASE_LTO}")
@@ -105,7 +106,7 @@ target_include_directories(Simo PRIVATE src)
 add_executable(SimoSim src/SimoSim/SimoSim.cc)
 target_link_libraries(SimoSim PRIVATE Simo)
 
-install(TARGETS Simo)
+install(TARGETS Simo SimoSim)
 install(DIRECTORY include/
         DESTINATION include
 )
@@ -160,6 +161,12 @@ target_sources(test_Statistics PRIVATE
         tests/statistics/StatisticsTest.cc
 )
 target_link_libraries(test_Statistics PRIVATE Simo)
+
+create_unit_test_executable(test_Module)
+target_sources(test_Module PRIVATE
+        tests/module/ModuleTest.cc
+)
+target_link_libraries(test_Module PRIVATE Simo)
 
 add_library(SimoTestPingPongCollection SHARED
         tests/collection/PingPongCollection.cc

@@ -44,8 +44,6 @@ std::optional<Parameters> Parameters::get_subtree(
 
 std::string_view Parameters::name() const { return name_; }
 
-void Parameters::name(const std::string_view name) { name_ = name; }
-
 InitializationStatus Module::initialize(Context& sim_ctx_v,
                                         const Parameters& parameters) {
   sim_ctx_ = &sim_ctx_v;
@@ -59,6 +57,8 @@ std::string_view Module::name() const { return name_; }
 
 Context& Module::sim_ctx() const { return *sim_ctx_; }
 
+Time Module::current_time() const { return sim_ctx().current_time(); }
+
 void Module::record_statistics(Statistics::StatMapper& mapper) {
   statistics.visit([&mapper](auto& s) { mapper.add(s); });
 }
@@ -66,6 +66,19 @@ void Module::record_statistics(Statistics::StatMapper& mapper) {
 Port* Module::get_port(const std::string_view name) {
   return ports.contains(std::string(name)) ? ports[std::string(name)].get()
                                            : nullptr;
+}
+
+InitializationStatus Module::log_setup(const std::filesystem::path& out_file) {
+  logger = {};
+  return logger.initialize(out_file);
+}
+
+void Module::log_enable(const bool new_value) { logger.enabled(new_value); }
+
+void Module::log_level(const size_t level) { logger.log_level(level); }
+
+void Module::log_level(const std::string_view level_name) {
+  logger.log_level(level_name);
 }
 
 }  // namespace Simo

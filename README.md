@@ -15,23 +15,29 @@ it is missing: a simple, easy to use library that does what you need.
 
 Guides (Markdown files inside `docs` folder) and Doxygen built from the main branch are stored in **[GitHub Pages](https://fusiled.github.io/Simo/)** .
 
+## Get and initialize the repository
+
+```bash
+git clone https://github.com/fusiled/Simo
+cd Simo
+git submodule update --init
+```
+
 ## Build
+
+Clone Simo and initialize the submodules:
 
 Build dependencies:
 - CMake >= 3.31.0
-- Boost ([Boost.Test](https://www.boost.org/libs/test),
-[Boost.TypeIndex](https://www.boost.org/libs/type_index))
+- Boost ([Boost.Test](https://www.boost.org/libs/test), [Boost.TypeIndex](https://www.boost.org/libs/type_index))
 - [Glaze](https://github.com/stephenberry/glaze)
 - [Doxygen](https://www.doxygen.nl/index.html) (for documentation)
 
-Library usage dependencies (headers-only):
-- Boost ([Boost.TypeIndex](https://www.boost.org/libs/type_index))
-- [Glaze](https://github.com/stephenberry/glaze)
+The build will produce `libSimo` (core library) and `SimoSim` (a general purpose
+executable to run simulations).
 
-The build will produce `libSimo`.
-
-The [nix](https://nixos.org/learn/) flake simplifies the set up of the dependencies. With nix installed you can:
-- Build the package with `nix build`
+The [nix](https://nixos.org/learn/) flake simplifies the setup of the dependencies. With nix installed you can:
+- Build the package with `nix build`. The build will be accessible in the `result` folder.
 - Run `nix develop` to enter a virtual environment with all the required tools installed.
 The GitHub actions run entering the virtual environment of `nix develop`.
 

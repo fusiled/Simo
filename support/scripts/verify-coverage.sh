@@ -19,7 +19,7 @@
 BUILD_FOLDER=${1:-.}
 LINE_PERCENTAGE=${2:-70}
 
-IGNORE_REGEX="Count.h|CLI11.hpp"
+IGNORE_REGEX="Count.h|CLI11.hpp|enchantum_single_header.hpp"
 
 set -x
 

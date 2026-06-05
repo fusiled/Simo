@@ -63,11 +63,11 @@ std::expected<Context::RunStatus, InitializationStatus> Context::run_at(
     }
     // Advance time to next tick
     currentTime = Time(next_tick);
-    nextTickHeap->pop();
     for (const auto& task : scheduledTasks[currentTime]) {
       task(currentTime);
     }
     scheduledTasks[currentTime].clear();
+    nextTickHeap->pop();
   }
   state = State::STOPPED;
   return RunStatus::STOPPED;

@@ -124,8 +124,9 @@ class SIMO_PUBLIC Module {
   ///
   /// Enable log by default when the operation succeeds. Calling this function
   /// will re-initialize the log even if the same out_file is passed
-  virtual InitializationStatus log_setup(
-      const std::filesystem::path& out_file = "simo.log");
+  virtual InitializationStatus log_setup(const std::filesystem::path& out_file);
+  /// Default log_setup with default path set to Simo.log
+  InitializationStatus log_setup();
 
   /// Enable/disable logging for the component
   void log_enable(bool new_value);
@@ -139,11 +140,11 @@ class SIMO_PUBLIC Module {
   /// The callable is evaluated only when the log is enabled and the log level
   /// is satisfied
   template <typename Callable>
-  void log(size_t level, Callable&& callable, bool print_level = false) {
+  void log(size_t level, Callable&& callable) {
     auto f = [this, callable]() {
       return std::format("[{}] [{}] {}\n", current_time(), name(), callable());
     };
-    log_raw_callable(level, print_level, f);
+    log_raw_callable(level, true, f);
   }
 
   /// Log a message with the given level without adding timestamp
@@ -151,6 +152,8 @@ class SIMO_PUBLIC Module {
   void log_raw_callable(size_t level, bool print_level, Callable&& callable) {
     logger.log_callable(level, print_level, std::forward<Callable>(callable));
   }
+
+  void populate_default_log_levels();
 
   Log::Logger& get_logger() { return logger; }
 

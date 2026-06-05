@@ -1,0 +1,31 @@
+# List all modules in the modules section
+modules:
+  # This is the module of the tutorial
+  - name: my_first_module
+    type: TestModule
+    parameters:
+      - name: period
+        value:
+          time: 10
+          unit: NS
+      - name: log_level
+        value: VERBOSE
+  # Collector is a module bundles with Simo to collect statistics between start_time and end_time.
+  - name: collector
+    type: collector
+    parameters:
+      - name: start_time
+        value:
+          time: 0
+          unit: NS
+      - name: end_time
+        value:
+          time: 50
+          unit: NS
+# connections section allow to connect modules using ports. In this tutorial, there are no connections
+connections: []
+# Additional simulation information. In this example, specify how long the simulation will run
+simulation:
+  time:
+    time: 50
+    unit: NS

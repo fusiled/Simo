@@ -1,0 +1,15 @@
+id: no-default-parameter
+language: Cpp
+severity: error
+message: Do not use default parameters in C++.
+note: Default parameters in headers may require re-compilation even when the header does not change
+rule:
+  kind: optional_parameter_declaration
+  pattern: $PARAM
+transform:
+  PARAM_NO_DEFAULT:
+    replace:
+      source: $PARAM
+      replace: '\s*=\s*.*$'
+      by: ''
+fix: $PARAM_NO_DEFAULT

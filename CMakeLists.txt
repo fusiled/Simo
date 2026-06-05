@@ -102,14 +102,51 @@ target_include_directories(Simo
 )
 target_include_directories(Simo PRIVATE src)
 
+# Simo_includes_only is a header-only target
+add_library(Simo_includes_only INTERFACE)
+target_include_directories(Simo_includes_only
+        INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(Simo_includes_only INTERFACE glaze::glaze)
+target_compile_options(Simo_includes_only INTERFACE -fno-rtti)
+# Avoid linking against Simo
+if (APPLE)
+  target_link_options(Simo_includes_only INTERFACE
+          "LINKER:-undefined,dynamic_lookup"
+  )
+else()
+  target_link_options(Simo_includes_only INTERFACE
+          "LINKER:--allow-shlib-undefined"
+  )
+endif()
+
 
 add_executable(SimoSim src/SimoSim/SimoSim.cc)
 target_link_libraries(SimoSim PRIVATE Simo)
 
-install(TARGETS Simo SimoSim)
+install(TARGETS Simo SimoSim Simo_includes_only
+  EXPORT SimoTargets
+)
 install(DIRECTORY include/
         DESTINATION include
 )
+install(EXPORT SimoTargets
+        FILE SimoTargets.cmake
+        NAMESPACE Simo::
+        DESTINATION lib/cmake/Simo
+)
+
+# Generate the Package Configuration
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+        "cmake/Simo/SimoConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY AnyNewerVersion)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/support/cmake/SimoConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/cmake/Simo/SimoConfigVersion.cmake"
+        DESTINATION lib/cmake/Simo)
+
 
 
 ## Unit tests
@@ -171,19 +208,14 @@ target_link_libraries(test_Module PRIVATE Simo)
 add_library(SimoTestPingPongCollection SHARED
         tests/collection/PingPongCollection.cc
 )
+set_target_properties(SimoTestPingPongCollection PROPERTIES
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN 1
+)
 target_compile_options(SimoTestPingPongCollection PRIVATE -fno-exceptions)
 # Compile only with includes. Do not link against libraries
-target_link_libraries(SimoTestPingPongCollection PRIVATE $<COMPILE_ONLY:Simo>)
-# Avoid linking against Simo
-if (APPLE)
-  target_link_options(SimoTestPingPongCollection PRIVATE
-            "LINKER:-undefined,dynamic_lookup"
-    )
-else ()
-  target_link_options(SimoTestPingPongCollection PRIVATE
-            "LINKER:--allow-shlib-undefined"
-    )
-endif ()
+target_link_libraries(SimoTestPingPongCollection PRIVATE Simo_includes_only)
+
 
 # Make this custom command to trigger re-build for targets that uses SimoTestPingPongCollection libraries indirectly (like
 # test_Collection)

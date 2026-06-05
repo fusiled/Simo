@@ -46,7 +46,7 @@ InitializationStatus Logger::initialize(
     return InitializationStatus(
         nullptr, {"Failed to open log file: " + sink_path.string()});
   }
-  sink_tracker[sink_path] = {std::move(new_sink), 1};
+  sink_tracker[sink_path] = {.sink = std::move(new_sink), .ref_count = 1};
   sink = &sink_tracker[sink_path].sink;
   is_enabled = true;
   return InitializationStatus::ok(nullptr);
@@ -99,9 +99,13 @@ Logger& Logger::enabled(const bool new_enabled_value) {
 bool Logger::enabled() const { return is_enabled; }
 
 Logger::~Logger() {
+  if (!sink_tracker.contains(sink_path)) {
+    return;
+  }
   int& ref_count = sink_tracker[sink_path].ref_count;
   ref_count--;
   if (ref_count <= 0) {
+    sink_tracker[sink_path].sink.flush();
     sink_tracker[sink_path].sink.close();
     sink_tracker.erase(sink_path);
   }

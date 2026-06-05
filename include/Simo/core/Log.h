@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <ostream>
 #include <vector>
 
 #include "InitializationStatus.h"
@@ -52,7 +53,7 @@ class SIMO_PUBLIC Logger {
   /// Setup log level from string. Do nothing is string is not recognized
   Logger& log_level(std::string_view level_name);
 
-  size_t log_level() const;
+  [[nodiscard]] size_t log_level() const;
 
   /// Enable/disable logger
   Logger& enabled(bool new_enabled_value);
@@ -94,7 +95,8 @@ class SIMO_PUBLIC Logger {
 
  protected:
   std::filesystem::path sink_path;
-  std::ofstream* sink = nullptr;
+  std::ostream* sink = nullptr;
+  bool tracked_sink = false;
   bool is_enabled = false;
   size_t current_log_level = 0;
   std::vector<std::string> level_map;

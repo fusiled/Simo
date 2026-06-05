@@ -20,7 +20,6 @@ Guides (Markdown files inside `docs` folder) and Doxygen built from the main bra
 ```bash
 git clone https://github.com/fusiled/Simo
 cd Simo
-git submodule update --init
 ```
 
 ## Build
@@ -40,6 +39,10 @@ The [nix](https://nixos.org/learn/) flake simplifies the setup of the dependenci
 - Build the package with `nix build`. The build will be accessible in the `result` folder.
 - Run `nix develop` to enter a virtual environment with all the required tools installed.
 The GitHub actions run entering the virtual environment of `nix develop`.
+
+## First Steps
+
+Look inside [docs/tutorial](./docs/tutorial) .
 
 ## Features
 
@@ -65,7 +68,5 @@ This can be achieved with:
 
 ## To Do
 - Create a collector with periodic window collection functionality
-- Create logging system for components 
-- More documentation and examples  
-- Error config in Simo::Context 
+- More documentation and examples
 - Benchmark Simo against Gem5 and SystemC

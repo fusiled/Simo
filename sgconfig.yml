@@ -1,0 +1,6 @@
+ruleDirs:
+- support/ast-grep
+
+languageGlobs:
+  cpp:
+    - "**/*.h"

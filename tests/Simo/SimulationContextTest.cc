@@ -17,7 +17,9 @@
 #include <boost/test/unit_test.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
+#include <vector>
 
 class InitTrackingModule final : public Simo::Module {
  public:
@@ -193,6 +195,39 @@ BOOST_AUTO_TEST_CASE(ContextSchedulesRepeatedFutureTickWhileRunning) {
   sim_ctx.run_at(Time(6));
 
   BOOST_CHECK_EQUAL(calls_at_five, 2U);
+}
+
+BOOST_AUTO_TEST_CASE(ContextSchedulesEarlierFutureTickWhileLaterTickQueued) {
+  using Simo::Context;
+  using Simo::Time;
+
+  Context sim_ctx;
+  std::vector<uint64_t> periodic_call_times;
+  bool final_event_called = false;
+
+  sim_ctx.schedule_at(Time(50), [&](const Time t) {
+    BOOST_CHECK_EQUAL(t.to_picoseconds(), 50U);
+    final_event_called = true;
+  });
+
+  std::function<void()> periodic_event;
+  periodic_event = [&] {
+    periodic_call_times.push_back(sim_ctx.current_time().to_picoseconds());
+    if (periodic_call_times.size() < 5) {
+      sim_ctx.schedule_in(Time(10), periodic_event);
+    }
+  };
+
+  sim_ctx.schedule_at(Time::zero, periodic_event);
+  sim_ctx.run_at(Time(50));
+
+  BOOST_REQUIRE_EQUAL(periodic_call_times.size(), 5U);
+  BOOST_CHECK_EQUAL(periodic_call_times[0], 0U);
+  BOOST_CHECK_EQUAL(periodic_call_times[1], 10U);
+  BOOST_CHECK_EQUAL(periodic_call_times[2], 20U);
+  BOOST_CHECK_EQUAL(periodic_call_times[3], 30U);
+  BOOST_CHECK_EQUAL(periodic_call_times[4], 40U);
+  BOOST_CHECK_EQUAL(final_event_called, true);
 }
 
 BOOST_AUTO_TEST_CASE(ContextAddParameterTemplateInstantiations) {

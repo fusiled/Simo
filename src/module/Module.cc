@@ -73,12 +73,18 @@ InitializationStatus Module::log_setup(const std::filesystem::path& out_file) {
   return logger.initialize(out_file);
 }
 
+InitializationStatus Module::log_setup() { return log_setup("Simo.log"); }
+
 void Module::log_enable(const bool new_value) { logger.enabled(new_value); }
 
 void Module::log_level(const size_t level) { logger.log_level(level); }
 
 void Module::log_level(const std::string_view level_name) {
   logger.log_level(level_name);
+}
+
+void Module::populate_default_log_levels() {
+  logger.populate_default_log_levels();
 }
 
 }  // namespace Simo

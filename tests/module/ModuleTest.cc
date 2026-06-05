@@ -42,7 +42,7 @@ struct Fixture {
     BOOST_CHECK(status.success());
 
     const fs::path temp_dir = fs::temp_directory_path();
-    temp_file = temp_dir / "simo.log";
+    temp_file = temp_dir / "Simo.log";
     std::filesystem::remove(temp_file);
     m.log_setup(temp_file);
     logger = &m.get_logger();
@@ -62,7 +62,7 @@ BOOST_FIXTURE_TEST_CASE(EnableLog, Fixture) {
   std::string message = "This is a log message";
   const std::string out_message =
       std::format("[WARNING] [0 ps] [test_module] {}\n", message);
-  m.log(3, [&message]() { return message; }, true);
+  m.log(3, [&message]() { return message; });
   flush_log();
   const std::string log_content = read_file_contents(temp_file);
   BOOST_CHECK_EQUAL(log_content, out_message);
@@ -72,7 +72,7 @@ BOOST_FIXTURE_TEST_CASE(LogDisabled, Fixture) {
   logger->populate_default_log_levels();
   m.log_enable(false);
   std::string message = "This is a log message";
-  m.log(3, [&message]() { return message; }, true);
+  m.log(3, [&message]() { return message; });
   flush_log();
   const std::string log_content = read_file_contents(temp_file);
   BOOST_CHECK_EQUAL(log_content, "");
@@ -96,4 +96,12 @@ BOOST_FIXTURE_TEST_CASE(SkipLogDueToLevel, Fixture) {
   flush_log();
   const std::string log_content = read_file_contents(temp_file);
   BOOST_CHECK_EQUAL(log_content, "");
+}
+
+BOOST_AUTO_TEST_CASE(StdoutLogSetupEnablesLogger) {
+  Simo::Log::Logger logger;
+  const auto status = logger.initialize("/dev/stdout");
+
+  BOOST_CHECK(status.success());
+  BOOST_CHECK_EQUAL(logger.enabled(), true);
 }

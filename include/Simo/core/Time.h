@@ -41,7 +41,7 @@ class SIMO_PUBLIC Time final {
  public:
   enum struct Unit : std::uint8_t { PS, NS, US, MS, S };
 
-  explicit constexpr Time(const uint64_t time, const Unit unit = Unit::PS) {
+  explicit constexpr Time(const uint64_t time, const Unit unit) {
     switch (unit) {
       case Unit::PS:
         picoseconds = time;
@@ -60,6 +60,8 @@ class SIMO_PUBLIC Time final {
         return;
     }
   }
+
+  explicit constexpr Time(const uint64_t ps_time) : Time(ps_time, Unit::PS) {}
 
   constexpr Time() : Time(0) {}
 

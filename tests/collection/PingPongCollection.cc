@@ -45,7 +45,7 @@ class PingPongParameters : public Simo::Parameters {
   }
 };
 
-class PingModule : public Simo::Module {
+class PingPongBaseModule : public Simo::Module {
  public:
   Simo::InitializationStatus initialize(
       Simo::Context& sim_ctx_p, const Simo::Parameters& parameters) override {
@@ -54,6 +54,7 @@ class PingModule : public Simo::Module {
       return status;
     }
     log_setup(parameters.get<std::filesystem::path>("log_file")->value());
+    populate_default_log_levels();
     log_level(parameters.get<std::string>("log_level")->value());
     period = parameters.get<Simo::Time>("period")->value();
     port =
@@ -65,7 +66,20 @@ class PingModule : public Simo::Module {
     return Simo::InitializationStatus::ok(this);
   }
 
-  void update_state() {
+  virtual void update_state() = 0;
+
+  virtual void try_send() = 0;
+
+ protected:
+  Simo::Ports::BidirectionalPort<PingPongMessage>* port = nullptr;
+  Simo::Statistics::Count* num_msg_sent = nullptr;
+  bool send_message = false;
+  Simo::Time period = Simo::Time::zero;
+};
+
+class PingModule final : public PingPongBaseModule {
+ public:
+  void update_state() override {
     sim_ctx().schedule_in(period, [this]() { update_state(); });
     send_message = start_send;
     if (const auto* const val = port->peek_in();
@@ -75,7 +89,7 @@ class PingModule : public Simo::Module {
     }
   }
 
-  void try_send() {
+  void try_send() override {
     sim_ctx().schedule_in(period, [this]() { try_send(); });
     if (send_message) {
       log(Simo::Log::LogLevel::INFO, []() { return "Send PING"; });
@@ -86,34 +100,12 @@ class PingModule : public Simo::Module {
   }
 
  protected:
-  Simo::Ports::BidirectionalPort<PingPongMessage>* port = nullptr;
-  Simo::Statistics::Count* num_msg_sent = nullptr;
-  bool send_message = false;
   bool start_send = true;
-  Simo::Time period = Simo::Time::zero;
 };
 
-class PongModule : public Simo::Module {
+class PongModule final : public PingPongBaseModule {
  public:
-  Simo::InitializationStatus initialize(
-      Simo::Context& sim_ctx_v, const Simo::Parameters& parameters) override {
-    if (const auto status = Module::initialize(sim_ctx_v, parameters);
-        !status.success()) {
-      return status;
-    }
-    period = parameters.get<Simo::Time>("period")->value();
-    log_setup(parameters.get<std::filesystem::path>("log_file")->value());
-    log_level(parameters.get<std::string>("log_level")->value());
-    port =
-        &create_port<Simo::Ports::BidirectionalPort<PingPongMessage>>("port");
-    num_msg_sent = &create_statistic<Simo::Statistics::Count>("num_msg_sent");
-    sim_ctx().schedule_at(Simo::Time::zero, [this]() { update_state(); });
-    sim_ctx().schedule_at(period / 2, [this]() { try_send(); });
-
-    return Simo::InitializationStatus::ok(this);
-  }
-
-  void update_state() {
+  void update_state() override {
     sim_ctx().schedule_in(period, [this]() { update_state(); });
     send_message = false;
     if (const auto val = port->peek_in();
@@ -123,7 +115,7 @@ class PongModule : public Simo::Module {
     }
   }
 
-  void try_send() {
+  void try_send() override {
     sim_ctx().schedule_in(period, [this]() { try_send(); });
     if (send_message) {
       log(Simo::Log::LogLevel::INFO, []() { return "Send PONG"; });
@@ -131,12 +123,6 @@ class PongModule : public Simo::Module {
       ++(*num_msg_sent);
     }
   }
-
- protected:
-  Simo::Ports::BidirectionalPort<PingPongMessage>* port = nullptr;
-  Simo::Statistics::Count* num_msg_sent = nullptr;
-  Simo::Time period = Simo::Time::zero;
-  bool send_message = false;
 };
 
 constexpr Simo::Collections::SimoCollectionVersion VERSION{
@@ -169,7 +155,7 @@ static Simo::Collections::SimoCollection collection{
     .factory_list_size = FACTORY_LIST.size(),
 };
 
-const Simo::Collections::SimoCollection* simo_get_collection() {
+SIMO_PUBLIC const Simo::Collections::SimoCollection* simo_get_collection() {
   return &collection;
 }
 }

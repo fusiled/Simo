@@ -73,6 +73,7 @@ std::optional<ModulePortName> parse_module_port_name(
 int main(const int argc, char* argv[]) {
   std::filesystem::path config_path;
   std::vector<std::string> collection_search_paths;
+  int verbosity = 0;
 
   CLI::App app{"Simulation with Simo"};
 
@@ -84,6 +85,8 @@ int main(const int argc, char* argv[]) {
          "--search-path", collection_search_paths,
          "directory where to look for shared object containing collections")
       ->check(CLI::ExistingDirectory);
+  app.add_flag("-v,--verbose", verbosity,
+               "Increase verbosity level (e.g., -v, -vv, -vvv)");
 
   CLI11_PARSE(app, argc, argv);
 
@@ -120,6 +123,13 @@ int main(const int argc, char* argv[]) {
     }
     std::cerr << "\n";
     return DUPLICATE_TYPES;
+  }
+
+  if (verbosity >= 3) {
+    std::cout << "Detected modules:\n";
+    for (const auto& type : factory_map | std::views::keys) {
+      std::cerr << type << "\n";
+    }
   }
 
   SimoSim::Config::Config cfg;
@@ -224,6 +234,7 @@ int main(const int argc, char* argv[]) {
   }
 
   ctx.run_at(cfg.simulation.time);
+  Simo::Log::Logger::flush_all_sinks();
 
   return SUCCESS;
 }

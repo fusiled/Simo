@@ -30,6 +30,8 @@ jobs:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - name: clang-format
         run: nix develop --command  ${{github.workspace}}/support/scripts/cpp-check-format.sh
+      - name: ast-grep
+        run: nix develop --command  ${{github.workspace}}/support/scripts/run-ast-grep.sh
   Configure-Build-and-Unit-Tests:
     strategy:
       matrix:

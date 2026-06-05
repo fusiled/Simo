@@ -1,4 +1,4 @@
-Find the tutorial in [tutorial folder](./tutorial)
+Find the tutorial in [guided_examples folder](./guided_examples)
 
 ## Motivations
 

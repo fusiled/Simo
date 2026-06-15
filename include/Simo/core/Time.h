@@ -146,7 +146,7 @@ struct TimeValue {
   Time::Unit unit;
 };
 
-template <auto Format>
+template <unsigned int Format>
 struct from<Format, Time> {
   template <auto Opts>
   static void op(Time& value, is_context auto&& ctx, auto&& it, auto&& end) {
@@ -161,7 +161,7 @@ struct from<Format, Time> {
   }
 };
 
-template <auto Format>
+template <unsigned int Format>
 struct to<Format, Time> {
   template <auto Opts>
   static void op(const Time& value, is_context auto&& ctx, auto&& b,

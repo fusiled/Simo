@@ -34,7 +34,7 @@ class SIMO_PUBLIC Port {
 
   /// Utility to the get type of class. Need the type at compile time
   template <typename Self>
-  TypeId get_type_id(this Self& _) {
+  TypeId get_type_id(this Self& /*unused*/) {
     return boost::typeindex::type_id<Self>();
   }
 
@@ -86,7 +86,7 @@ class SIMO_PUBLIC OutPort : public Port {
         state_ = PORT_STATE::FILLED;
         return SEND_OUTCOME::REPLACED;
     }
-    SIMO_ASSERT(false);
+    std::abort();
   }
 
   void clear() { state_ = PORT_STATE::EMPTY; }

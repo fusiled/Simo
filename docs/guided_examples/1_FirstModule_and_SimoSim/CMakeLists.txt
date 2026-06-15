@@ -21,21 +21,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Look for Simo package
 find_package(Simo REQUIRED)
-get_filename_component(SIMO_PACKAGE_PREFIX "${Simo_DIR}/../../.." ABSOLUTE)
-
 
 # Create you collection of modules
-add_library(TutorialCollection SHARED
+add_library(FirstModuleCollection SHARED
         FirstModule.cc
 )
 # Hide symbols by default
-set_target_properties(TutorialCollection PROPERTIES
+set_target_properties(FirstModuleCollection PROPERTIES
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN 1
 )
 
 # Use Simo::Simo_includes_only to only use the include files and avoid direct linking to Simo
-target_link_libraries(TutorialCollection PRIVATE Simo::Simo_includes_only)
-target_include_directories(TutorialCollection PRIVATE
-        "${SIMO_PACKAGE_PREFIX}/include"
-)
+target_link_libraries(FirstModuleCollection PRIVATE Simo::Simo_includes_only)

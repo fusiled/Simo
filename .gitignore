@@ -1,3 +1,4 @@
 /.idea
 /cmake-build-*
-/docs/tutorial/build*
+/docs/guided_examples/*/build*
+/docs/guided_examples/flake.lock

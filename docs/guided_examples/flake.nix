@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
 
-    simo.url = "../../..";
+    simo.url = "../..";
     simo.inputs.nixpkgs.follows = "nixpkgs";
     simo.inputs.flake-utils.follows = "flake-utils";
   };
@@ -26,7 +26,6 @@
             llvm
             glaze
             doxygen
-
             simo.packages.${system}.default
           ];
         };

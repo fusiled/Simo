@@ -27,6 +27,7 @@ cd Simo
 Clone Simo and initialize the submodules:
 
 Build dependencies:
+- Clang (recommended)
 - CMake >= 3.31.0
 - Boost ([Boost.Test](https://www.boost.org/libs/test), [Boost.TypeIndex](https://www.boost.org/libs/type_index))
 - [Glaze](https://github.com/stephenberry/glaze)
@@ -42,7 +43,7 @@ The GitHub actions run entering the virtual environment of `nix develop`.
 
 ## First Steps
 
-Look inside [docs/tutorial](./docs/tutorial) .
+Look inside [docs/guided_examples](./docs/guided_examples) .
 
 ## Features
 

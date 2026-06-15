@@ -23,7 +23,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-        simo = pkgs.stdenv.mkDerivation {
+        simo = pkgs.clangStdenv.mkDerivation {
           pname = "simo";
           version = "0.0.1";
           src = ./.;
@@ -47,6 +47,7 @@
 
           doCheck = true;
           checkPhase = ''
+	    ls *.so
             ctest --output-on-failure
           '';
         };

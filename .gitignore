@@ -2,3 +2,8 @@
 /cmake-build-*
 /docs/guided_examples/*/build*
 /docs/guided_examples/flake.lock
+# Avoid adding symlinks
+/support/ides/clion/*
+
+
+*.DS_Store

@@ -10,24 +10,35 @@
     simo.inputs.flake-utils.follows = "flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, simo }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      simo,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs { inherit system; };
       in
       {
-        devShells.default = pkgs.mkShell.override {
-          stdenv = pkgs.clangStdenv;
-        } {
-          packages = with pkgs; [
-            boost
-            cmake
-            ninja
-            llvm
-            glaze
-            doxygen
-            simo.packages.${system}.default
-          ];
-        };
-      });
+        devShells.default =
+          pkgs.mkShell.override
+            {
+              stdenv = pkgs.clangStdenv;
+            }
+            {
+              packages = with pkgs; [
+                boost
+                cmake
+                ninja
+                llvm
+                glaze
+                doxygen
+                simo.packages.${system}.default
+              ];
+            };
+      }
+    );
 }

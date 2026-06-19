@@ -13,14 +13,16 @@ it is missing: a simple, easy to use library that does what you need.
 
 ## Documentation
 
-Guides (Markdown files inside `docs` folder) and Doxygen built from the main branch are stored in **[GitHub Pages](https://fusiled.github.io/Simo/)** .
+**[GitHub Pages](https://fusiled.github.io/Simo/)** stores Doxygen documentation and guides (Markdown files inside `docs` folder).
 
-## Get and initialize the repository
-
+## Get the repository and build in 3 commands
+Assuming [nix](https://nixos.org/learn/):
 ```bash
 git clone https://github.com/fusiled/Simo
 cd Simo
+nix build
 ```
+The build is going to be accessible in the `result` folder.
 
 ## Build
 
@@ -66,6 +68,10 @@ This can be achieved with:
 - Simple logic and simple code
 - Good documented code
 - Proper unit-testing coverage
+
+### IDEs
+You can see [this guide](./support/ides/clion/README.md) on how to use nix 
+binaries to build in CLion.
 
 ## To Do
 - Create a collector with periodic window collection functionality

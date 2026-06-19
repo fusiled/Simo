@@ -19,8 +19,14 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs { inherit system; };
         simo = pkgs.clangStdenv.mkDerivation {
@@ -29,6 +35,7 @@
           src = ./.;
 
           nativeBuildInputs = with pkgs; [
+            # Real build dependencies
             cmake
             ninja
             doxygen
@@ -47,28 +54,28 @@
 
           doCheck = true;
           checkPhase = ''
-	    ls *.so
             ctest --output-on-failure
           '';
         };
-      in {
+      in
+      {
         packages.default = simo;
         checks.default = simo;
 
-        devShells.default = pkgs.mkShell.override {
-            stdenv = pkgs.clangStdenv;
-        } {
-          packages = with pkgs; [
-            boost
-            cmake
-            ninja
-            clang-tools
-            llvm
-            glaze
-            doxygen
-            ast-grep
-          ];
-        };
+        formatter = nixpkgs.legacyPackages.${system}.nixfmt;
+
+        devShells.default =
+          pkgs.mkShell.override
+            {
+              stdenv = pkgs.clangStdenv;
+            }
+            {
+              inputsFrom = [ simo ];
+              packages = with pkgs; [
+                clang-tools
+                ast-grep
+              ];
+            };
       }
     );
 }

@@ -99,6 +99,11 @@ class SIMO_PUBLIC Module {
 
   [[nodiscard]] std::string_view name() const;
 
+  [[nodiscard]] constexpr std::string name_of_child(
+      const std::string_view child) const {
+    return name_ + "/" + std::string(child);
+  }
+
   [[nodiscard]] Context& sim_ctx() const;
 
   virtual ~Module() {}

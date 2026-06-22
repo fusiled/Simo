@@ -105,3 +105,13 @@ BOOST_AUTO_TEST_CASE(StdoutLogSetupEnablesLogger) {
   BOOST_CHECK(status.success());
   BOOST_CHECK_EQUAL(logger.enabled(), true);
 }
+
+BOOST_AUTO_TEST_CASE(NameOfChild) {
+  Simo::Context ctx;
+  Simo::Parameters p;
+  Simo::Module m;
+  p.name("root");
+  const auto status = m.initialize(ctx, p);
+  auto child_name = m.name_of_child("child");
+  BOOST_CHECK_EQUAL(child_name, "root/child");
+}

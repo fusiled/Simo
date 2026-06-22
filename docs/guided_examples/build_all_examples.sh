@@ -20,6 +20,11 @@ BUILD_TYPE="Debug"
 
 while IFS= read -r -d '' dir
 do
+  if [[ ! -f "$dir/CMakeLists.txt" ]]; then
+    echo "Skipping $dir: no CMakeLists.txt"
+    continue
+  fi
+
   pushd "$dir" > /dev/null || exit
   echo "Building example in $dir"
   cmake -B ./build "-DCMAKE_BUILD_TYPE=$BUILD_TYPE"

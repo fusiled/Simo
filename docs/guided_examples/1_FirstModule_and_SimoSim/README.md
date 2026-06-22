@@ -1,7 +1,7 @@
 # FirstModule SimoSim 
 
 ## Introduction
-The documents highlights some location in the source of [FirstModule.cc](./FirstModule.cc)
+The document highlights some location in the source of [FirstModule.cc](./FirstModule.cc)
 to better understand how to write your own `Module` class and how to use it
 in `SimoSim`, a general purpose executable to run simulations.
 

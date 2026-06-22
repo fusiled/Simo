@@ -128,7 +128,7 @@ int main(const int argc, char* argv[]) {
   if (verbosity >= 3) {
     std::cout << "Detected modules:\n";
     for (const auto& type : factory_map | std::views::keys) {
-      std::cerr << type << "\n";
+      std::cout << type << "\n";
     }
   }
 
@@ -233,7 +233,9 @@ int main(const int argc, char* argv[]) {
     }
   }
 
+  std::cout << "Starting simulation of " << cfg.simulation.time << "\n";
   ctx.run_at(cfg.simulation.time);
+  std::cout << "Simulation completed\n";
   Simo::Log::Logger::flush_all_sinks();
 
   return SUCCESS;

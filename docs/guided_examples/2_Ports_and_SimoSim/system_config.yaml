@@ -12,19 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# List all modules in the modules section
+# Simple example to demonstrate ports
 modules:
-  # This is the module of the tutorial
-  - name: my_first_module
-    type: TestModule
+  - name: ping_module
+    type: ping
     parameters:
       - name: period
         value:
           time: 10
-          unit: NS
+          unit: PS
+  - name: pong_module
+    type: pong
+    parameters:
+      - name: period
+        value:
+          time: 10
+          unit: PS
       - name: log_level
-        value: VERBOSE
-  # Collector is a module bundles with Simo to collect statistics between start_time and end_time.
+        value: INFO
   - name: collector
     type: collector
     parameters:
@@ -34,12 +39,11 @@ modules:
           unit: NS
       - name: end_time
         value:
-          time: 50
+          time: 100
           unit: NS
-# connections section allow to connect modules using ports. In this tutorial, there are no connections
-connections: []
-# Additional simulation information. In this example, specify how long the simulation will run
+connections:
+  - ping_module/port: pong_module/port
 simulation:
   time:
-    time: 50
+    time: 100
     unit: NS

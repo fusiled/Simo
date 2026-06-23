@@ -106,12 +106,17 @@ BOOST_AUTO_TEST_CASE(StdoutLogSetupEnablesLogger) {
   BOOST_CHECK_EQUAL(logger.enabled(), true);
 }
 
-BOOST_AUTO_TEST_CASE(NameOfChild) {
+BOOST_AUTO_TEST_CASE(ModuleChild) {
   Simo::Context ctx;
   Simo::Parameters p;
   Simo::Module m;
   p.name("root");
   const auto status = m.initialize(ctx, p);
+  auto& child = m.create_child<Simo::Module>();
   auto child_name = m.name_of_child("child");
-  BOOST_CHECK_EQUAL(child_name, "root/child");
+  Simo::Parameters p_child;
+  p_child.name(child_name);
+  auto child_status = child.initialize(ctx, p_child);
+  BOOST_CHECK_EQUAL(child_status.success(), true);
+  BOOST_CHECK_EQUAL(p_child.name(), "root/child");
 }

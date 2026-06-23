@@ -162,7 +162,6 @@ class SIMO_PUBLIC Module {
 
   Log::Logger& get_logger() { return logger; }
 
- protected:
   /// Create a new statistic of type T
   template <typename T, typename... Args>
   T& create_statistic(Args... args) {
@@ -179,8 +178,16 @@ class SIMO_PUBLIC Module {
     return out_ref;
   }
 
+  template <typename T, typename... Args>
+  T& create_child(Args... args) {
+    children.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
+    return *children.back();
+  }
+
+ protected:
   Statistics::StatStorage statistics;
   std::unordered_map<std::string, std::unique_ptr<Port>> ports;
+  std::vector<std::unique_ptr<Module>> children;
   Log::Logger logger;
 
  private:

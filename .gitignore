@@ -1,9 +1,16 @@
+# CLion folders
 /.idea
 /cmake-build-*
+
+# guided_examples products
 /docs/guided_examples/*/build*
 /docs/guided_examples/flake.lock
+
 # Avoid adding symlinks
 /support/ides/clion/*
 
+# Products of SimoSim
+Simo.log
+statistics.yaml
 
 *.DS_Store

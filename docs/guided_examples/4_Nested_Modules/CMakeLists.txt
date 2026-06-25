@@ -13,7 +13,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.31.0)
-project(FirstModule VERSION 0.0.1)
+project(NestedModule VERSION 0.0.1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,15 +21,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Look for Simo package
 find_package(Simo REQUIRED)
 
-# Create you collection of modules
-add_library(FirstModuleCollection SHARED
-        FirstModule.cc
-)
-# Hide symbols by default
-set_target_properties(FirstModuleCollection PROPERTIES
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN 1
-)
+add_executable(NestedModule NestedModule.cc)
 
-# Use Simo::Simo_includes_only to only use the include files and avoid direct linking to Simo
-target_link_libraries(FirstModuleCollection PRIVATE Simo::Simo_includes_only)
+# Use Simo::Simo to only use libraries and include headers
+target_link_libraries(NestedModule PRIVATE Simo::Simo)

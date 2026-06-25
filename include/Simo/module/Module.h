@@ -178,10 +178,14 @@ class SIMO_PUBLIC Module {
     return out_ref;
   }
 
+  /// Create a child module of type T. The child is owned by this module
+  /// instance
   template <typename T, typename... Args>
   T& create_child(Args... args) {
-    children.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
-    return *children.back();
+    auto ptr = std::make_unique<T>(std::forward<Args>(args)...);
+    T& out_ref = *ptr;
+    children.emplace_back(std::move(ptr));
+    return out_ref;
   }
 
  protected:

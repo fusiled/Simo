@@ -74,6 +74,8 @@
               packages = with pkgs; [
                 clang-tools
                 ast-grep
+                # For llvm-cov
+                llvmPackages.llvm
               ];
             };
       }

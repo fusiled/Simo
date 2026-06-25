@@ -76,6 +76,7 @@ set_target_properties(Simo PROPERTIES
 )
 
 target_compile_options(Simo PRIVATE -fno-exceptions)
+target_compile_options(Simo PUBLIC -fno-rtti)
 
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 message("Boost version: ${Boost_VERSION}")

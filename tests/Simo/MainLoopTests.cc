@@ -88,4 +88,12 @@ BOOST_AUTO_TEST_CASE(InitializationFailure) {
 
   const auto initialize_success = sim_ctx.initialize();
   BOOST_REQUIRE(!initialize_success);
+  std::string initialization_success_str =
+      "Module <null>\n  Module test\n    - Parameter check failed";
+  BOOST_CHECK_EQUAL(std::format("{}", initialize_success),
+                    initialization_success_str);
+
+  std::stringstream ss;
+  ss << initialize_success;
+  BOOST_CHECK_EQUAL(ss.str(), initialization_success_str);
 }

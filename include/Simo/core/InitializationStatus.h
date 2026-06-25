@@ -17,6 +17,8 @@
 #ifndef SIMO_INITIALIZATIONSTATUS_H
 #define SIMO_INITIALIZATIONSTATUS_H
 
+#include <format>
+#include <ostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -38,6 +40,8 @@ class SIMO_PUBLIC InitializationStatus {
 
   void add_error(std::string_view new_error);
 
+  [[nodiscard]] std::string to_string() const;
+
   template <typename... Args>
   InitializationStatus& emplace_sub_error(Args... args) {
     sub_errors.emplace_back(args...);
@@ -54,8 +58,24 @@ class SIMO_PUBLIC InitializationStatus {
   std::vector<std::string> error_list;
   std::vector<InitializationStatus> sub_errors;
   bool success_ = false;
+
+  void append_to(std::string& out, std::size_t indent) const;
 };
 
+inline std::ostream& operator<<(std::ostream& os,
+                                const InitializationStatus& status) {
+  return os << status.to_string();
+}
+
 }  // namespace Simo
+
+template <>
+struct std::formatter<Simo::InitializationStatus, char>
+    : std::formatter<std::string, char> {
+  auto format(const Simo::InitializationStatus& status,
+              std::format_context& ctx) const {
+    return std::formatter<std::string, char>::format(status.to_string(), ctx);
+  }
+};
 
 #endif  // SIMO_INITIALIZATIONSTATUS_H

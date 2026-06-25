@@ -16,6 +16,8 @@
 
 #include "Simo/core/InitializationStatus.h"
 
+#include <Simo/module/Module.h>
+
 namespace Simo {
 
 InitializationStatus::InitializationStatus(
@@ -37,5 +39,40 @@ void InitializationStatus::add_error(std::string_view new_error) {
 [[nodiscard]] bool InitializationStatus::success() const { return success_; }
 
 InitializationStatus::operator bool() const { return success_; }
+
+std::string InitializationStatus::to_string() const {
+  std::string out;
+
+  append_to(out, 0);
+
+  return out;
+}
+
+void InitializationStatus::append_to(std::string& out,
+                                     std::size_t indent) const {
+  const std::string padding(indent, ' ');
+
+  if (success_) {
+    out += std::format("{}Module {} - OK", padding,
+                       module == nullptr ? "<null>" : module->name());
+    return;
+  }
+
+  out += std::format("{}Module {}", padding,
+                     module == nullptr ? "<null>" : module->name());
+
+  for (const auto& error : error_list) {
+    out += '\n';
+    out += padding;
+    out += padding;
+    out += "- ";
+    out += error;
+  }
+
+  for (const auto& sub_error : sub_errors) {
+    out += '\n';
+    sub_error.append_to(out, indent + 2);
+  }
+}
 
 }  // namespace Simo

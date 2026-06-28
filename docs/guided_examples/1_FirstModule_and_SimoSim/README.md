@@ -103,7 +103,8 @@ class FirstModuleParameters : public Parameters {
 ## Expose modules and parameters for SimoSim
 
 `SimoSim` is an executable able to detect shared libraries at runtime that contains
-modules.  A shared library needs to expose a function named `simo_get_collection`.
+modules.  A shared library needs to expose a function named `simo_get_collection`and add `SIMO_COLLECTION_DECLARATION`
+**only once per library**.
 With this function, `SimoSim` can load a collection of factories. A Factory tells
 `SimoSim` how to instantiate a module and the associated parameters.
 

@@ -23,10 +23,11 @@
 #include <Simo/statistics/StatMapper.h>
 #include <Simo/statistics/StatOutStream.h>
 
-#include <boost/test/unit_test.hpp>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+
+#include "support/BoostInclude.h"
 
 namespace {
 

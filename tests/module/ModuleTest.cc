@@ -16,10 +16,11 @@
 #include <Simo/core/Context.h>
 #include <Simo/module/Module.h>
 
-#include <boost/test/unit_test.hpp>
 #include <filesystem>
 #include <fstream>
 #include <string>
+
+#include "support/BoostInclude.h"
 
 namespace fs = std::filesystem;
 

@@ -14,12 +14,13 @@
 
 #include <Simo/Simo.h>
 
-#include <boost/test/unit_test.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>
+
+#include "support/BoostInclude.h"
 
 class InitTrackingModule final : public Simo::Module {
  public:

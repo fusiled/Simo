@@ -15,11 +15,12 @@
 #define BOOST_TEST_MODULE SimoCollections
 #include <Simo/Simo.h>
 
-#include <boost/test/unit_test.hpp>
 #include <filesystem>
 #include <memory>
 #include <string_view>
 #include <utility>
+
+#include "support/BoostInclude.h"
 
 #if defined(__APPLE__)
 #define DYNLIB_EXT "dylib"

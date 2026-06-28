@@ -16,9 +16,10 @@
 #include <Simo/parameter/Parameter.h>
 #include <Simo/parameter/ParameterTrie.h>
 
-#include <boost/test/unit_test.hpp>
 #include <memory>
 #include <string>
+
+#include "support/BoostInclude.h"
 
 BOOST_AUTO_TEST_CASE(ParameterTyped_default_constructor_and_setters) {
   using Simo::Parameter::ParameterTyped;

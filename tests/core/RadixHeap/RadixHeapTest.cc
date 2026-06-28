@@ -15,7 +15,7 @@
 #define BOOST_TEST_MODULE RadixHeap
 #include <Simo/core/internal/RadixHeap.h>
 
-#include <boost/test/unit_test.hpp>
+#include "support/BoostInclude.h"
 
 using Simo::Internal::RadixHeap;
 

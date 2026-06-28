@@ -12,5 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#define BOOST_TEST_MODULE Simo
-#include "support/BoostInclude.h"
+#if !defined(BOOST_TEST_MODULE) && !defined(SIMO_TESTS_NO_MAIN_INCLUDE)
+#include <boost/test/unit_test.hpp>
+#else
+#include <boost/test/included/unit_test.hpp>
+#endif

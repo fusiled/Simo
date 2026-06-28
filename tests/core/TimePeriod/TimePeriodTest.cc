@@ -13,12 +13,12 @@
 // limitations under the License.
 
 #define BOOST_TEST_MODULE SimoTimePeriod
-#include <boost/test/unit_test.hpp>
 #include <glaze/glaze.hpp>
 #include <sstream>
 #include <unordered_set>
 
 #include "Simo/Simo.h"
+#include "support/BoostInclude.h"
 
 BOOST_AUTO_TEST_CASE(TimeUnitConversions) {
   using Simo::Time;

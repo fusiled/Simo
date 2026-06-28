@@ -29,7 +29,7 @@ The build is going to be accessible in the `result` folder.
 Clone Simo and initialize the submodules:
 
 Build dependencies:
-- Clang (recommended)
+- Clang (recommended) or gcc
 - CMake >= 3.31.0
 - Boost ([Boost.Test](https://www.boost.org/libs/test), [Boost.TypeIndex](https://www.boost.org/libs/type_index))
 - [Glaze](https://github.com/stephenberry/glaze)
@@ -68,6 +68,9 @@ This can be achieved with:
 - Simple logic and simple code
 - Good documented code
 - Proper unit-testing coverage
+
+Default compiler is clang. There is support for gcc build as well. With `nix`, use `nix develop .#gcc` to obtain
+a development environment that uses gcc as compiler.
 
 ### IDEs
 You can see [this guide](./support/ides/clion/README.md) on how to use nix 

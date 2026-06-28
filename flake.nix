@@ -29,6 +29,34 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
+        simoBaseAttributes = {
+          pname = "simo";
+          version = "0.0.1";
+          src = ./.;
+
+          nativeBuildInputs = with pkgs; [
+            # Real build dependencies
+            cmake
+            ninja
+            doxygen
+          ];
+
+          buildInputs = with pkgs; [
+            boost
+            glaze
+          ];
+
+          cmakeFlags = [
+            "-DPORTABLE_BUILD=ON"
+            "-DENABLE_RELEASE_LTO=OFF"
+            "-DCMAKE_CXX_SCAN_FOR_MODULES=OFF"
+          ];
+
+          doCheck = true;
+          checkPhase = ''
+            ctest --output-on-failure
+          '';
+        };
         simo = pkgs.clangStdenv.mkDerivation {
           pname = "simo";
           version = "0.0.1";
@@ -57,10 +85,16 @@
             ctest --output-on-failure
           '';
         };
+
+        derivationAttributes = {
+            default = pkgs.clangStdenv.mkDerivation simoBaseAttributes;
+            clang = pkgs.clangStdenv.mkDerivation simoBaseAttributes;
+            gcc = pkgs.gccStdenv.mkDerivation simoBaseAttributes;
+        };
       in
       {
-        packages.default = simo;
-        checks.default = simo;
+        packages = derivationAttributes;
+        checks = derivationAttributes;
 
         formatter = nixpkgs.legacyPackages.${system}.nixfmt;
 
@@ -70,7 +104,7 @@
               stdenv = pkgs.clangStdenv;
             }
             {
-              inputsFrom = [ simo ];
+              inputsFrom = [ derivationAttributes.default ];
               packages = with pkgs; [
                 clang-tools
                 ast-grep

@@ -15,7 +15,7 @@
 #include <Simo/Simo.h>
 #include <Simo/module/Module.h>
 
-#include <boost/test/unit_test.hpp>
+#include "support/BoostInclude.h"
 
 class TestModule : public Simo::Module {
  public:

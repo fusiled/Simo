@@ -114,6 +114,8 @@ static Simo::Collections::SimoCollection collection{
     .factory_list_size = FACTORY_LIST.size(),
 };
 
+SIMO_COLLECTION_DECLARATION;
+
 // This exposes the collection
 SIMO_PUBLIC const Simo::Collections::SimoCollection* simo_get_collection() {
   return &collection;

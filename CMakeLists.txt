@@ -12,6 +12,11 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+# GCC build struggles on mac and it requires to enforce this variable to empty
+# to successfully link agains libraries.
+# This option is valid only on Apple architectures
+set(CMAKE_OSX_ARCHITECTURES "" CACHE STRING "")
+
 cmake_minimum_required(VERSION 3.31.0)
 project(Simo VERSION 0.0.1)
 include(CPack)
@@ -78,18 +83,16 @@ set_target_properties(Simo PROPERTIES
 target_compile_options(Simo PRIVATE -fno-exceptions)
 target_compile_options(Simo PUBLIC -fno-rtti)
 
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost REQUIRED)
 message("Boost version: ${Boost_VERSION}")
 
 find_package(glaze REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE glaze::glaze)
+target_link_libraries(${PROJECT_NAME} PRIVATE Boost::boost glaze::glaze)
 
 
 if (DEBUG_CMAKE)
   message(STATUS "Boost include dirs: ${Boost_INCLUDE_DIRS}")
 endif ()
-
-target_include_directories(Simo SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
 
 set_target_properties(Simo PROPERTIES
         CXX_VISIBILITY_PRESET hidden
@@ -154,9 +157,8 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/support/cmake/SimoConfig.cmake" "${CM
 enable_testing()
 function(create_unit_test_executable name)
   add_executable("${name}")
-  target_include_directories("${name}" PRIVATE include)
-  target_include_directories("${name}" PRIVATE src)
-  target_link_libraries("${name}" PRIVATE Boost::unit_test_framework)
+  target_include_directories("${name}" PRIVATE include src tests)
+  target_link_libraries("${name}" PRIVATE Boost::boost)
   add_test("${name}" "${name}")
   if (ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set_tests_properties("${name}" PROPERTIES

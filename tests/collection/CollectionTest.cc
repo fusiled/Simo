@@ -28,6 +28,7 @@
 #define DYNLIB_EXT "so"
 #endif
 
+namespace Simo::Tests {
 namespace {
 std::filesystem::path collection_library_path() {
   // Assuming tests are run from the build folder
@@ -264,3 +265,4 @@ BOOST_AUTO_TEST_CASE(collection_with_lib_move_assignment_and_self_move) {
 
   BOOST_CHECK_EQUAL(destination.get_collection(), source_collection);
 }
+}  // namespace Simo::Tests

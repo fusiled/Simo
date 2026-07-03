@@ -29,6 +29,7 @@
 
 #include "support/BoostInclude.h"
 
+namespace Simo::Tests {
 namespace {
 
 class NamedPort final : public Simo::Port {
@@ -467,3 +468,4 @@ BOOST_AUTO_TEST_CASE(CollectorInitializeFailsWithInvalidParameters) {
 
   BOOST_CHECK_EQUAL(collector.initialize(sim_ctx, params).success(), false);
 }
+}  // namespace Simo::Tests

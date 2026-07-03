@@ -21,6 +21,7 @@
 
 #include "support/BoostInclude.h"
 
+namespace Simo::Tests {
 BOOST_AUTO_TEST_CASE(ParameterTyped_default_constructor_and_setters) {
   using Simo::Parameter::ParameterTyped;
 
@@ -172,3 +173,4 @@ BOOST_AUTO_TEST_CASE(ParameterTrie_subtrie_lookup_branches) {
   BOOST_CHECK_EQUAL(nested_value, &value_param);
   BOOST_CHECK_CLOSE(nested_value->value(), 3.14, 0.0001);
 }
+}  // namespace Simo::Tests

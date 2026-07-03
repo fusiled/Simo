@@ -20,6 +20,7 @@
 #include "Simo/Simo.h"
 #include "support/BoostInclude.h"
 
+namespace Simo::Tests {
 BOOST_AUTO_TEST_CASE(TimeUnitConversions) {
   using Simo::Time;
 
@@ -110,3 +111,4 @@ BOOST_AUTO_TEST_CASE(TimeJsonSerializationAndParsing) {
   BOOST_CHECK(invalid_error);
   BOOST_CHECK_EQUAL(unchanged.to_picoseconds(), 99U);
 }
+}  // namespace Simo::Tests

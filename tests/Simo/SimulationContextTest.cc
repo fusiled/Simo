@@ -22,6 +22,7 @@
 
 #include "support/BoostInclude.h"
 
+namespace Simo::Tests {
 class InitTrackingModule final : public Simo::Module {
  public:
   Simo::InitializationStatus initialize(
@@ -263,3 +264,4 @@ BOOST_AUTO_TEST_CASE(ModuleParametersGetSubtreeHitAndMiss) {
   auto missing = params.get_subtree("missing");
   BOOST_CHECK_EQUAL(missing.has_value(), false);
 }
+}  // namespace Simo::Tests

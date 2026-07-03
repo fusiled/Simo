@@ -87,9 +87,9 @@
         };
 
         derivationAttributes = {
-            default = pkgs.clangStdenv.mkDerivation simoBaseAttributes;
-            clang = pkgs.clangStdenv.mkDerivation simoBaseAttributes;
-            gcc = pkgs.gccStdenv.mkDerivation simoBaseAttributes;
+          default = pkgs.clangStdenv.mkDerivation simoBaseAttributes;
+          clang = pkgs.clangStdenv.mkDerivation simoBaseAttributes;
+          gcc = pkgs.gccStdenv.mkDerivation simoBaseAttributes;
         };
       in
       {
@@ -106,11 +106,16 @@
             {
               inputsFrom = [ derivationAttributes.default ];
               packages = with pkgs; [
+                git
+                bashInteractive
                 clang-tools
                 ast-grep
                 # For llvm-cov
                 llvmPackages.llvm
               ];
+              shellHook = ''
+                		  export SHELL="${pkgs.bashInteractive}/bin/bash"
+              '';
             };
       }
     );

@@ -17,7 +17,8 @@
 
 #include "support/BoostInclude.h"
 
-using Simo::Internal::RadixHeap;
+namespace Simo::Tests {
+using Internal::RadixHeap;
 
 BOOST_AUTO_TEST_CASE(pushElements) {
   RadixHeap heap;
@@ -96,3 +97,4 @@ BOOST_AUTO_TEST_CASE(pushElementReorder) {
   BOOST_CHECK_EQUAL(heap.peek(), 0);
   BOOST_CHECK_EQUAL(heap.size(), 1);
 }
+}  // namespace Simo::Tests

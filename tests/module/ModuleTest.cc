@@ -24,6 +24,7 @@
 
 namespace fs = std::filesystem;
 
+namespace Simo::Tests {
 namespace {
 
 [[nodiscard]] std::string read_file_contents(
@@ -121,3 +122,4 @@ BOOST_AUTO_TEST_CASE(ModuleChild) {
   BOOST_CHECK_EQUAL(child_status.success(), true);
   BOOST_CHECK_EQUAL(p_child.name(), "root/child");
 }
+}  // namespace Simo::Tests

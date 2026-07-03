@@ -17,6 +17,7 @@
 
 #include "support/BoostInclude.h"
 
+namespace Simo::Tests {
 class TestModule : public Simo::Module {
  public:
   Simo::InitializationStatus initialize(Simo::Context& ctx,
@@ -97,3 +98,4 @@ BOOST_AUTO_TEST_CASE(InitializationFailure) {
   ss << initialize_success;
   BOOST_CHECK_EQUAL(ss.str(), initialization_success_str);
 }
+}  // namespace Simo::Tests

@@ -89,6 +89,19 @@ class SIMO_PUBLIC OutPort : public Port {
     std::abort();
   }
 
+  SEND_OUTCOME send(Payload& payload) {
+    storage = payload;
+    switch (state_) {
+      case PORT_STATE::EMPTY:
+        state_ = PORT_STATE::FILLED;
+        return SEND_OUTCOME::NEW;
+      case PORT_STATE::FILLED:
+        state_ = PORT_STATE::FILLED;
+        return SEND_OUTCOME::REPLACED;
+    }
+    std::abort();
+  }
+
   void clear() { state_ = PORT_STATE::EMPTY; }
 
   PORT_STATE state() const { return state_; }
@@ -170,6 +183,10 @@ class SIMO_PUBLIC BidirectionalPortTyped : public Port {
   /// Push a payload on the out port
   OutPort<OutPayload>::SEND_OUTCOME send_out(OutPayload&& payload) {
     return out_port.send(std::move(payload));
+  }
+
+  OutPort<OutPayload>::SEND_OUTCOME send_out(OutPayload& payload) {
+    return out_port.send(payload);
   }
 
   void clear_out() { out_port.clear(); }

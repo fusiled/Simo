@@ -18,6 +18,8 @@
 #define SIMO_PORT_HH
 
 #include <expected>
+#include <functional>
+#include <utility>
 
 #include "Simo/compiler/BoostTypeIndexRuntimeCast.h"
 #include "Simo/compiler/Compiler.h"
@@ -52,6 +54,9 @@ namespace Ports {
 
 template <typename Payload>
 class InPort;
+
+template <typename Payload, typename ReturnType>
+class CallbackOutPort;
 
 /// Templated port that can send payloads to an InPort of the same type
 ///
@@ -145,6 +150,91 @@ class SIMO_PUBLIC InPort : public Port {
   OutPort<Payload>* connecting_port = nullptr;
 };
 
+/// Templated output port that receives payloads from a CallbackInPort of the
+/// same type and invokes a callback for each payload.
+template <typename Payload, typename ReturnType>
+class SIMO_PUBLIC CallbackInPort : public Port {
+ public:
+  friend class CallbackOutPort<Payload, ReturnType>;
+
+  using Callback = std::function<ReturnType(Payload)>;
+
+  CallbackInPort() = default;
+  explicit CallbackInPort(Callback callback) : callback_(std::move(callback)) {}
+
+  BOOST_TYPE_INDEX_REGISTER_RUNTIME_CLASS(Port)
+  [[nodiscard]]
+  bool connect(Port* other) override;
+
+  void callback(Callback callback) { callback_ = std::move(callback); }
+
+  [[nodiscard]]
+  bool has_callback() const {
+    return static_cast<bool>(callback_);
+  }
+
+ protected:
+  void receive(Payload payload)
+    requires(std::is_same_v<ReturnType, void>)
+  {
+    if (callback_) {
+      callback_(std::forward<Payload>(payload));
+    }
+  }
+
+  [[nodiscard]]
+  std::optional<ReturnType> receive(Payload payload)
+    requires(!std::is_same_v<ReturnType, void>)
+  {
+    if (callback_) {
+      return callback_(std::forward<Payload>(payload));
+    }
+    return std::nullopt;
+  }
+
+  Callback callback_;
+};
+
+/// Templated input port that sends payloads to a CallbackOutPort of the same
+/// type.
+template <typename Payload, typename ReturnType>
+class SIMO_PUBLIC CallbackOutPort : public Port {
+ public:
+  friend class CallbackInPort<Payload, ReturnType>;
+  BOOST_TYPE_INDEX_REGISTER_RUNTIME_CLASS(Port)
+  [[nodiscard]]
+  bool connect(Port* other) override;
+
+  [[nodiscard]]
+  std::optional<ReturnType> send(Payload&& payload) {
+    if (connecting_port == nullptr) {
+      return std::nullopt;
+    }
+    return connecting_port->receive(std::forward<Payload>(payload));
+  }
+
+  void send(const Payload&& payload)
+    requires(std::is_same_v<ReturnType, void>)
+  {
+    if (connecting_port != nullptr) {
+      connecting_port->receive(std::forward<Payload>(payload));
+    }
+  }
+
+  [[nodiscard]]
+  std::optional<ReturnType> send(const Payload& payload)
+    requires(!std::is_same_v<ReturnType, void>)
+  {
+    if (connecting_port != nullptr) {
+      return connecting_port->receive(payload);
+    }
+    return std::nullopt;
+  }
+
+ protected:
+  CallbackInPort<Payload, ReturnType>* connecting_port = nullptr;
+};
+
 template <typename Payload>
 bool OutPort<Payload>::connect(Port* other) {
   if (other->get_type_id() != get_type_id<Port>()) {
@@ -168,6 +258,36 @@ bool InPort<Payload>::connect(Port* other) {
     return false;
   }
   connecting_port = other_casted;
+  return true;
+}
+
+template <typename Payload, typename ReturnType>
+bool CallbackOutPort<Payload, ReturnType>::connect(Port* other) {
+  if (other == nullptr || other->get_type_id() != get_type_id<Port>()) {
+    return false;
+  }
+  auto* other_casted =
+      boost::typeindex::runtime_cast<CallbackInPort<Payload, ReturnType>*>(
+          other);
+  if (other_casted == nullptr) {
+    return false;
+  }
+  connecting_port = other_casted;
+  return true;
+}
+
+template <typename Payload, typename ReturnType>
+bool CallbackInPort<Payload, ReturnType>::connect(Port* other) {
+  if (other == nullptr || other->get_type_id() != get_type_id<Port>()) {
+    return false;
+  }
+  auto* other_casted =
+      boost::typeindex::runtime_cast<CallbackOutPort<Payload, ReturnType>*>(
+          other);
+  if (other_casted == nullptr) {
+    return false;
+  }
+  other_casted->connecting_port = this;
   return true;
 }
 

@@ -21,7 +21,7 @@ cmake_minimum_required(VERSION 3.31.0)
 project(Simo VERSION 0.0.1)
 include(CPack)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(PORTABLE_BUILD "Be verbose on build and turn warnings into errors for the sake of build portability" ON)
@@ -197,6 +197,11 @@ target_sources(test_TimePeriod PRIVATE
 create_unit_test_executable(test_Parameter)
 target_sources(test_Parameter PRIVATE
         tests/parameter/ParameterTest.cc
+)
+
+create_unit_test_executable(test_Port)
+target_sources(test_Port PRIVATE
+        tests/port/PortTest.cc
 )
 
 create_unit_test_executable(test_Statistics)

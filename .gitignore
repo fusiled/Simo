@@ -1,7 +1,7 @@
 # CLion folders
 /.idea
 /cmake-build-*
-
+/build*
 # guided_examples products
 /docs/guided_examples/*/build*
 /docs/guided_examples/flake.lock

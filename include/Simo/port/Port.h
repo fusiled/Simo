@@ -128,12 +128,13 @@ class SIMO_PUBLIC InPort : public Port {
   [[nodiscard]]
   bool connect(Port* other) override;
 
-  Payload&& receive() {
+  Payload receive() {
     SIMO_ASSERT(connecting_port != nullptr);
-    SIMO_ASSERT(connecting_port->state != OutPort<Payload>::PORT_STATE::EMPTY);
+    SIMO_ASSERT(connecting_port->state() !=
+                OutPort<Payload>::PORT_STATE::EMPTY);
     Payload out_p = std::move(connecting_port->storage);
     connecting_port->clear();
-    return std::move(out_p);
+    return out_p;
   }
 
   Payload* peek() {
@@ -144,7 +145,11 @@ class SIMO_PUBLIC InPort : public Port {
     return &connecting_port->storage;
   }
 
-  void clear() { connecting_port->clear(); }
+  void clear() {
+    if (connecting_port != nullptr) {
+      connecting_port->clear();
+    }
+  }
 
  protected:
   OutPort<Payload>* connecting_port = nullptr;
@@ -195,6 +200,81 @@ class SIMO_PUBLIC CallbackInPort : public Port {
   Callback callback_;
 };
 
+enum struct SIMO_PUBLIC VERIFY_CONTRACT_ERROR : std::uint8_t {
+  NO_CONNECTED_PORT,
+  NO_CONNECTED_PORT_CONTRACT,
+  NO_PREDICATE,
+};
+
+/// Class to implement the contract logic.
+///
+/// A contract is just a structure that a connecting port can probe
+/// And validate using a predicate
+template <typename Contract>
+class SIMO_PUBLIC ContractInterface {
+ public:
+  std::optional<Contract> contract() { return contract_; }
+  void contract(Contract contract) { contract_ = contract; }
+
+  void connected_port(ContractInterface* port) { connected_port_ = port; }
+
+  void connected_port_contract_predicate(
+      std::function<bool(Contract)> predicate) {
+    connected_port_contract_predicate_ = predicate;
+  }
+  std::expected<bool, VERIFY_CONTRACT_ERROR> verify_connected_port_contract() {
+    if (connected_port_ == nullptr) {
+      return std::unexpected(VERIFY_CONTRACT_ERROR::NO_CONNECTED_PORT);
+    }
+    if (connected_port_->contract() == std::nullopt) {
+      return std::unexpected(VERIFY_CONTRACT_ERROR::NO_CONNECTED_PORT_CONTRACT);
+    }
+    if (!connected_port_contract_predicate_) {
+      return std::unexpected(VERIFY_CONTRACT_ERROR::NO_PREDICATE);
+    }
+    return connected_port_contract_predicate_(*connected_port_->contract());
+  }
+
+ protected:
+  std::optional<Contract> contract_;
+  ContractInterface* connected_port_ = nullptr;
+  std::function<bool(Contract)> connected_port_contract_predicate_{};
+};
+
+/// Callback out port with contract logic.
+///
+/// See CallbackOutPort and ContractInterface classes
+template <typename Payload, typename ReturnType, typename Contract>
+class SIMO_PUBLIC CallbackContractOutPort
+    : public CallbackOutPort<Payload, ReturnType>,
+      public ContractInterface<Contract> {
+ public:
+  CallbackContractOutPort() = default;
+
+  BOOST_TYPE_INDEX_REGISTER_RUNTIME_CLASS(CallbackOutPort<Payload, ReturnType>)
+  [[nodiscard]]
+  bool connect(Port* other) override;
+};
+
+/// Callback out port with contract logic.
+///
+/// See CallbackInPort and ContractInterface classes
+template <typename Payload, typename ReturnType, typename Contract>
+class SIMO_PUBLIC CallbackContractInPort
+    : public CallbackInPort<Payload, ReturnType>,
+      public ContractInterface<Contract> {
+ public:
+  CallbackContractInPort() = default;
+
+  explicit CallbackContractInPort(
+      CallbackInPort<Payload, ReturnType>::Callback callback)
+      : CallbackInPort<Payload, ReturnType>(std::move(callback)) {}
+
+  BOOST_TYPE_INDEX_REGISTER_RUNTIME_CLASS(CallbackInPort<Payload, ReturnType>)
+  [[nodiscard]]
+  bool connect(Port* other) override;
+};
+
 /// Templated input port that sends payloads to a CallbackOutPort of the same
 /// type.
 template <typename Payload, typename ReturnType>
@@ -205,30 +285,27 @@ class SIMO_PUBLIC CallbackOutPort : public Port {
   [[nodiscard]]
   bool connect(Port* other) override;
 
+  template <typename Arg>
+    requires std::constructible_from<Payload, Arg&&> &&
+             (!std::is_void_v<ReturnType>)
   [[nodiscard]]
-  std::optional<ReturnType> send(Payload&& payload) {
+  std::optional<ReturnType> send(Arg&& payload) {
     if (connecting_port == nullptr) {
       return std::nullopt;
     }
-    return connecting_port->receive(std::forward<Payload>(payload));
+
+    return connecting_port->receive(std::forward<Arg>(payload));
   }
 
-  void send(const Payload&& payload)
-    requires(std::is_same_v<ReturnType, void>)
-  {
-    if (connecting_port != nullptr) {
-      connecting_port->receive(std::forward<Payload>(payload));
+  template <typename Arg>
+    requires std::constructible_from<Payload, Arg&&> &&
+             std::is_void_v<ReturnType>
+  void send(Arg&& payload) {
+    if (connecting_port == nullptr || !connecting_port->has_callback()) {
+      return;
     }
-  }
 
-  [[nodiscard]]
-  std::optional<ReturnType> send(const Payload& payload)
-    requires(!std::is_same_v<ReturnType, void>)
-  {
-    if (connecting_port != nullptr) {
-      return connecting_port->receive(payload);
-    }
-    return std::nullopt;
+    connecting_port->receive(std::forward<Arg>(payload));
   }
 
  protected:
@@ -237,7 +314,7 @@ class SIMO_PUBLIC CallbackOutPort : public Port {
 
 template <typename Payload>
 bool OutPort<Payload>::connect(Port* other) {
-  if (other->get_type_id() != get_type_id<Port>()) {
+  if (other == nullptr) {
     return false;
   }
   auto* other_casted = boost::typeindex::runtime_cast<InPort<Payload>*>(other);
@@ -250,7 +327,7 @@ bool OutPort<Payload>::connect(Port* other) {
 
 template <typename Payload>
 bool InPort<Payload>::connect(Port* other) {
-  if (other->get_type_id() != get_type_id<Port>()) {
+  if (other == nullptr) {
     return false;
   }
   auto* other_casted = boost::typeindex::runtime_cast<OutPort<Payload>*>(other);
@@ -263,7 +340,7 @@ bool InPort<Payload>::connect(Port* other) {
 
 template <typename Payload, typename ReturnType>
 bool CallbackOutPort<Payload, ReturnType>::connect(Port* other) {
-  if (other == nullptr || other->get_type_id() != get_type_id<Port>()) {
+  if (other == nullptr) {
     return false;
   }
   auto* other_casted =
@@ -278,7 +355,7 @@ bool CallbackOutPort<Payload, ReturnType>::connect(Port* other) {
 
 template <typename Payload, typename ReturnType>
 bool CallbackInPort<Payload, ReturnType>::connect(Port* other) {
-  if (other == nullptr || other->get_type_id() != get_type_id<Port>()) {
+  if (other == nullptr) {
     return false;
   }
   auto* other_casted =
@@ -289,6 +366,38 @@ bool CallbackInPort<Payload, ReturnType>::connect(Port* other) {
   }
   other_casted->connecting_port = this;
   return true;
+}
+
+template <typename Payload, typename ReturnType, typename Contract>
+bool CallbackContractOutPort<Payload, ReturnType, Contract>::connect(
+    Port* other) {
+  if (other == nullptr) {
+    return false;
+  }
+  auto* other_casted = boost::typeindex::runtime_cast<
+      CallbackContractInPort<Payload, ReturnType, Contract>*>(other);
+  if (other_casted == nullptr) {
+    return false;
+  }
+  ContractInterface<Contract>::connected_port(other_casted);
+  other_casted->connected_port(this);
+  return CallbackOutPort<Payload, ReturnType>::connect(other_casted);
+}
+
+template <typename Payload, typename ReturnType, typename Contract>
+bool CallbackContractInPort<Payload, ReturnType, Contract>::connect(
+    Port* other) {
+  if (other == nullptr) {
+    return false;
+  }
+  auto* other_casted = boost::typeindex::runtime_cast<
+      CallbackContractOutPort<Payload, ReturnType, Contract>*>(other);
+  if (other_casted == nullptr) {
+    return false;
+  }
+  ContractInterface<Contract>::connected_port(other_casted);
+  other_casted->connected_port(this);
+  return CallbackInPort<Payload, ReturnType>::connect(other_casted);
 }
 
 /// Port that can send and receive payloads on separate channels.

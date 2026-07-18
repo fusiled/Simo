@@ -143,6 +143,27 @@ BOOST_AUTO_TEST_CASE(CallbackPortsConnectionReferencePayload) {
   BOOST_CHECK_EQUAL(value, 1);
 }
 
+BOOST_AUTO_TEST_CASE(CallbackContractPortsConnectionSuccess) {
+  Ports::CallbackContractOutPort<int&, void, int> out;
+  // No port connected returns true
+  BOOST_CHECK(out.verify_connected_port_contract().error() ==
+              Ports::VERIFY_CONTRACT_ERROR::NO_CONNECTED_PORT);
+  Ports::CallbackContractInPort<int&, void, int> in([](int& ref) { ref = 1; });
+  BOOST_CHECK_EQUAL(out.connect(&in), true);
+  // No contract set, returns true
+  BOOST_CHECK(out.verify_connected_port_contract().error() ==
+              Ports::VERIFY_CONTRACT_ERROR::NO_CONNECTED_PORT_CONTRACT);
+  in.contract(10);
+  // A predicate to verify the contract is not set yet, so return true
+  BOOST_CHECK(out.verify_connected_port_contract().error() ==
+              Ports::VERIFY_CONTRACT_ERROR::NO_PREDICATE);
+  out.connected_port_contract_predicate([](int v) { return v == 9; });
+  // Predicate not satisfied
+  BOOST_CHECK_EQUAL(out.verify_connected_port_contract().value(), false);
+  in.contract(9);
+  BOOST_CHECK_EQUAL(out.verify_connected_port_contract().value(), true);
+}
+
 BOOST_AUTO_TEST_CASE(CallbackInPortMovesRvaluePayloadToCallback) {
   Ports::CallbackOutPort<std::unique_ptr<int>, bool> out;
   Ports::CallbackInPort<std::unique_ptr<int>, bool> in;

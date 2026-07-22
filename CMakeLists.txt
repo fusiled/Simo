@@ -264,6 +264,6 @@ if (ENABLE_DOCUMENTATION)
 
   doxygen_add_docs(
           doxygen_docs
-          include src docs tests "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
+          include src docs support tests "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
   )
 endif()

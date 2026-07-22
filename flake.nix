@@ -29,8 +29,8 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        simoBaseAttributes = {
-          pname = "simo";
+        SimoBaseAttributes = {
+          pname = "Simo";
           version = "0.0.1";
           src = ./.;
 
@@ -57,8 +57,8 @@
             ctest --output-on-failure
           '';
         };
-        simo = pkgs.clangStdenv.mkDerivation {
-          pname = "simo";
+        Simo = pkgs.clangStdenv.mkDerivation {
+          pname = "Simo";
           version = "0.0.1";
           src = ./.;
 
@@ -87,9 +87,9 @@
         };
 
         derivationAttributes = {
-          default = pkgs.clangStdenv.mkDerivation simoBaseAttributes;
-          clang = pkgs.clangStdenv.mkDerivation simoBaseAttributes;
-          gcc = pkgs.gccStdenv.mkDerivation simoBaseAttributes;
+          default = pkgs.clangStdenv.mkDerivation SimoBaseAttributes;
+          clang = pkgs.clangStdenv.mkDerivation SimoBaseAttributes;
+          gcc = pkgs.gccStdenv.mkDerivation SimoBaseAttributes;
         };
       in
       {

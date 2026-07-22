@@ -45,7 +45,7 @@ The GitHub actions run entering the virtual environment of `nix develop`.
 
 ## First Steps
 
-Look inside [docs/guided_examples](./docs/guided_examples) .
+Look inside [docs/guided_examples](./docs/guided_examples/README.md).
 
 ## Features
 
@@ -73,7 +73,7 @@ Default compiler is clang. There is support for gcc build as well. With `nix`, u
 a development environment that uses gcc as compiler.
 
 ### IDEs
-You can see [this guide](./support/ides/clion/README.md) on how to use nix 
+You can see [this guide](./support/ides/clion/README.md) on how to use nix
 binaries to build in CLion.
 
 ## To Do

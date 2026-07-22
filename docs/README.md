@@ -1,4 +1,6 @@
-Find the tutorial in [guided_examples folder](./guided_examples)
+# Documentation
+
+Find the tutorial in the [guided_examples folder](./guided_examples/README.md).
 
 ## Motivations
 

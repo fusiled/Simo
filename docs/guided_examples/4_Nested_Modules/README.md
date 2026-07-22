@@ -1,7 +1,7 @@
 # Nested Modules
 
 This document briefly explains how to create modules inside other modules.
-[./NestedModules.cc](./NestedModules.cc) is a minimal example.
+[NestedModule.cc](./NestedModule.cc) is a minimal example.
 
 ## Nested modules
 

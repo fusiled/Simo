@@ -40,8 +40,14 @@ class SIMO_PUBLIC Port {
     return boost::typeindex::type_id<Self>();
   }
 
+  TypeId get_runtime_type() const {
+    return boost::typeindex::type_id_runtime(*this);
+  }
+
   [[nodiscard]]
   virtual bool connect(Port* other) = 0;
+
+  virtual bool connected() const = 0;
 
   [[nodiscard]] std::string_view name() const { return name_; }
   void name(const std::string_view name) { name_ = name; }
@@ -81,6 +87,11 @@ class SIMO_PUBLIC OutPort : public Port {
   [[nodiscard]]
   bool connect(Port* other) override;
 
+  [[nodiscard]]
+  bool connected() const override {
+    return connecting_port != nullptr;
+  }
+
   SEND_OUTCOME send(Payload&& payload) {
     storage = std::move(payload);
     switch (state_) {
@@ -114,6 +125,7 @@ class SIMO_PUBLIC OutPort : public Port {
  protected:
   Payload storage;
   PORT_STATE state_ = PORT_STATE::EMPTY;
+  InPort<Payload>* connecting_port = nullptr;
 };
 
 /// Templated port that can received payloads from an OutPort of the same type
@@ -127,6 +139,11 @@ class SIMO_PUBLIC InPort : public Port {
   BOOST_TYPE_INDEX_REGISTER_RUNTIME_CLASS(Port)
   [[nodiscard]]
   bool connect(Port* other) override;
+
+  [[nodiscard]]
+  bool connected() const override {
+    return connecting_port != nullptr;
+  }
 
   Payload receive() {
     SIMO_ASSERT(connecting_port != nullptr);
@@ -171,6 +188,11 @@ class SIMO_PUBLIC CallbackInPort : public Port {
   [[nodiscard]]
   bool connect(Port* other) override;
 
+  [[nodiscard]]
+  bool connected() const override {
+    return connecting_port != nullptr;
+  }
+
   void callback(Callback callback) { callback_ = std::move(callback); }
 
   [[nodiscard]]
@@ -198,6 +220,7 @@ class SIMO_PUBLIC CallbackInPort : public Port {
   }
 
   Callback callback_;
+  CallbackOutPort<Payload, ReturnType>* connecting_port = nullptr;
 };
 
 enum struct SIMO_PUBLIC VERIFY_CONTRACT_ERROR : std::uint8_t {
@@ -285,6 +308,11 @@ class SIMO_PUBLIC CallbackOutPort : public Port {
   [[nodiscard]]
   bool connect(Port* other) override;
 
+  [[nodiscard]]
+  bool connected() const override {
+    return connecting_port != nullptr;
+  }
+
   template <typename Arg>
     requires std::constructible_from<Payload, Arg&&> &&
              (!std::is_void_v<ReturnType>)
@@ -321,6 +349,7 @@ bool OutPort<Payload>::connect(Port* other) {
   if (other_casted == nullptr) {
     return false;
   }
+  connecting_port = other_casted;
   other_casted->connecting_port = this;
   return true;
 }
@@ -335,6 +364,7 @@ bool InPort<Payload>::connect(Port* other) {
     return false;
   }
   connecting_port = other_casted;
+  other_casted->connecting_port = this;
   return true;
 }
 
@@ -350,6 +380,7 @@ bool CallbackOutPort<Payload, ReturnType>::connect(Port* other) {
     return false;
   }
   connecting_port = other_casted;
+  other_casted->connecting_port = this;
   return true;
 }
 
@@ -364,6 +395,7 @@ bool CallbackInPort<Payload, ReturnType>::connect(Port* other) {
   if (other_casted == nullptr) {
     return false;
   }
+  connecting_port = other_casted;
   other_casted->connecting_port = this;
   return true;
 }
@@ -408,6 +440,11 @@ class SIMO_PUBLIC BidirectionalPortTyped : public Port {
  public:
   BOOST_TYPE_INDEX_REGISTER_RUNTIME_CLASS(Port)
   bool connect(Port* other) override;
+
+  [[nodiscard]]
+  bool connected() const override {
+    return out_port.connected() && in_port.connected();
+  }
 
   /// Push a payload on the out port
   OutPort<OutPayload>::SEND_OUTCOME send_out(OutPayload&& payload) {

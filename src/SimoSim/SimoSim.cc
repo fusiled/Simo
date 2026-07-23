@@ -70,10 +70,29 @@ std::optional<ModulePortName> parse_module_port_name(
   };
 }
 
+void print_system_ports(
+    const std::unordered_map<ModuleName, ModuleParameterPair>& module_map) {
+  bool ports_printed = false;
+  std::cout << "Ports exposed by the system:\n";
+  for (const auto& [module_name, module_param_pair] : module_map) {
+    const auto& module = module_param_pair.module;
+    const auto ports = module->get_unconnected_ports(true);
+    ports_printed = !ports.empty();
+    for (const auto& port : ports) {
+      std::cout << "  " << port.full_name << " - "
+                << port.port->get_runtime_type().pretty_name() << "\n";
+    }
+  }
+  if (!ports_printed) {
+    std::cout << "  No ports\n";
+  }
+}
+
 int main(const int argc, char* argv[]) {
   std::filesystem::path config_path;
   std::vector<std::string> collection_search_paths;
   int verbosity = 0;
+  bool print_ports = false;
 
   CLI::App app{"Simulation with Simo"};
 
@@ -87,6 +106,8 @@ int main(const int argc, char* argv[]) {
       ->check(CLI::ExistingDirectory);
   app.add_flag("-v,--verbose", verbosity,
                "Increase verbosity level (e.g., -v, -vv, -vvv)");
+  app.add_flag("--print-ports", print_ports,
+               "Print available ports before port binding phase");
 
   CLI11_PARSE(app, argc, argv);
 
@@ -198,6 +219,10 @@ int main(const int argc, char* argv[]) {
   if (!ctx.initialize()) {
     std::cerr << "Failed to initialize the simulation\n";
     return INITIALIZATION_FAILED;
+  }
+
+  if (print_ports) {
+    print_system_ports(module_map);
   }
 
   for (const auto& [left_endpoint, right_endpoint] : cfg.connections) {

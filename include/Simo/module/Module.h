@@ -111,7 +111,42 @@ class SIMO_PUBLIC Module {
   /// Record a statistic in a StatMapper to dump statistics
   void record_statistics(Statistics::StatMapper& mapper);
 
+  /// Get a single port
   [[nodiscard]] Port* get_port(std::string_view);
+
+  /// Get a single port
+  ///
+  /// Return nullptr if the type does not match
+  template <typename T>
+  [[nodiscard]]
+  T get_port(std::string_view name)
+    requires std::is_pointer_v<T>
+  {
+    Port* port = get_port(name);
+    if (port == nullptr) {
+      return nullptr;
+    }
+    return boost::typeindex::runtime_cast<T>(port);
+  }
+
+  /// Get a single port
+  ///
+  /// Return nullptr if the type does not match
+  template <typename T>
+    requires(!std::is_pointer_v<T>)
+  [[nodiscard]]
+  T* get_port(std::string_view name) {
+    return get_port<T*>(name);
+  }
+
+  struct PortWithFullName {
+    std::string full_name;
+    Port* port;
+  };
+
+  /// Return all the unconnected ports that a module exposes
+  std::vector<PortWithFullName> get_unconnected_ports(
+      bool include_nested_components) const;
 
   Time current_time() const;
 

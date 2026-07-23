@@ -122,4 +122,65 @@ BOOST_AUTO_TEST_CASE(ModuleChild) {
   BOOST_CHECK_EQUAL(child_status.success(), true);
   BOOST_CHECK_EQUAL(p_child.name(), "root/child");
 }
+
+BOOST_AUTO_TEST_CASE(ModuleGetsPortAsRequestedType) {
+  Simo::Module module;
+  auto& port =
+      module.create_port<Ports::CallbackOutPort<int, bool>>("callback");
+
+  auto* explicitly_typed_port =
+      module.get_port<Ports::CallbackOutPort<int, bool>*>("callback");
+  auto* inferred_pointer_port =
+      module.get_port<Ports::CallbackOutPort<int, bool>>("callback");
+
+  BOOST_CHECK_EQUAL(explicitly_typed_port, &port);
+  BOOST_CHECK_EQUAL(inferred_pointer_port, &port);
+}
+
+BOOST_AUTO_TEST_CASE(ModuleTypedGetPortReturnsNullForMissingOrWrongType) {
+  Simo::Module module;
+  module.create_port<Ports::CallbackOutPort<int, bool>>("callback");
+
+  auto* missing_port =
+      module.get_port<Ports::CallbackOutPort<int, bool>>("missing");
+  auto* wrong_type_port =
+      module.get_port<Ports::CallbackInPort<int, bool>>("callback");
+
+  BOOST_CHECK_EQUAL(missing_port, nullptr);
+  BOOST_CHECK_EQUAL(wrong_type_port, nullptr);
+}
+
+BOOST_AUTO_TEST_CASE(ModuleGetsUnconnectedPorts) {
+  Simo::Context context;
+  Simo::Module module;
+  Simo::Parameters parameters;
+  parameters.name("root");
+  BOOST_REQUIRE(module.initialize(context, parameters).success());
+
+  auto& connected_out =
+      module.create_port<Ports::OutPort<int>>("connected_out");
+  auto& connected_in = module.create_port<Ports::InPort<int>>("connected_in");
+  BOOST_REQUIRE(connected_out.connect(&connected_in));
+  auto& root_unconnected =
+      module.create_port<Ports::CallbackOutPort<int, bool>>("unconnected");
+
+  auto& child = module.create_child<Simo::Module>();
+  Simo::Parameters child_parameters;
+  child_parameters.name(module.name_of_child("child"));
+  BOOST_REQUIRE(child.initialize(context, child_parameters).success());
+  auto& child_unconnected =
+      child.create_port<Ports::CallbackInPort<int, bool>>("unconnected");
+
+  const auto root_ports = module.get_unconnected_ports(false);
+  BOOST_REQUIRE_EQUAL(root_ports.size(), 1);
+  BOOST_CHECK_EQUAL(root_ports.front().full_name, "root/unconnected");
+  BOOST_CHECK_EQUAL(root_ports.front().port, &root_unconnected);
+
+  const auto all_ports = module.get_unconnected_ports(true);
+  BOOST_REQUIRE_EQUAL(all_ports.size(), 2);
+  BOOST_CHECK_EQUAL(all_ports[0].full_name, "root/unconnected");
+  BOOST_CHECK_EQUAL(all_ports[0].port, &root_unconnected);
+  BOOST_CHECK_EQUAL(all_ports[1].full_name, "root/child/unconnected");
+  BOOST_CHECK_EQUAL(all_ports[1].port, &child_unconnected);
+}
 }  // namespace Simo::Tests

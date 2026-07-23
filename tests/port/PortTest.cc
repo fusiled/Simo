@@ -28,6 +28,8 @@ class NamedPort final : public Simo::Port {
   [[nodiscard]] bool connect(Simo::Port* other) override {
     return other != nullptr;
   }
+
+  [[nodiscard]] bool connected() const override { return false; }
 };
 
 }  // namespace
@@ -43,6 +45,40 @@ BOOST_AUTO_TEST_CASE(PortNameGetterAndSetter) {
   BOOST_CHECK_EQUAL(right.name(), "right_port");
   BOOST_CHECK_EQUAL(left.connect(&right), true);
   BOOST_CHECK_EQUAL(left.connect(nullptr), false);
+}
+
+BOOST_AUTO_TEST_CASE(PortsReportTheirConnectionState) {
+  Ports::OutPort<int> out;
+  Ports::InPort<int> in;
+  BOOST_CHECK(!out.connected());
+  BOOST_CHECK(!in.connected());
+  BOOST_REQUIRE(out.connect(&in));
+  BOOST_CHECK(out.connected());
+  BOOST_CHECK(in.connected());
+
+  Ports::CallbackOutPort<int, bool> callback_out;
+  Ports::CallbackInPort<int, bool> callback_in;
+  BOOST_CHECK(!callback_out.connected());
+  BOOST_CHECK(!callback_in.connected());
+  BOOST_REQUIRE(callback_in.connect(&callback_out));
+  BOOST_CHECK(callback_out.connected());
+  BOOST_CHECK(callback_in.connected());
+
+  Ports::CallbackContractOutPort<int, bool, int> contract_out;
+  Ports::CallbackContractInPort<int, bool, int> contract_in;
+  BOOST_CHECK(!contract_out.connected());
+  BOOST_CHECK(!contract_in.connected());
+  BOOST_REQUIRE(contract_out.connect(&contract_in));
+  BOOST_CHECK(contract_out.connected());
+  BOOST_CHECK(contract_in.connected());
+
+  Ports::BidirectionalPort<int> bidirectional_left;
+  Ports::BidirectionalPort<int> bidirectional_right;
+  BOOST_CHECK(!bidirectional_left.connected());
+  BOOST_CHECK(!bidirectional_right.connected());
+  BOOST_REQUIRE(bidirectional_left.connect(&bidirectional_right));
+  BOOST_CHECK(bidirectional_left.connected());
+  BOOST_CHECK(bidirectional_right.connected());
 }
 
 BOOST_AUTO_TEST_CASE(CallbackInPortSendReturnsFalseWhenDisconnected) {
@@ -183,6 +219,12 @@ BOOST_AUTO_TEST_CASE(CallbackInPortMovesRvaluePayloadToCallback) {
   BOOST_CHECK_EQUAL(*result, true);
   BOOST_CHECK_EQUAL(payload, nullptr);
   BOOST_CHECK_EQUAL(received_value, 42);
+}
+
+BOOST_AUTO_TEST_CASE(GetRuntimeType) {
+  Ports::CallbackOutPort<std::unique_ptr<int>, bool> port;
+  Port* casted_port = &port;
+  BOOST_CHECK_EQUAL(port.get_runtime_type(), casted_port->get_runtime_type());
 }
 
 }  // namespace Simo::Tests

@@ -68,6 +68,25 @@ Port* Module::get_port(const std::string_view name) {
                                            : nullptr;
 }
 
+std::vector<Module::PortWithFullName> Module::get_unconnected_ports(
+    bool include_nested_components) const {
+  std::vector<PortWithFullName> ret;
+  for (const auto& p : ports) {
+    if (!p.second->connected()) {
+      ret.emplace_back(name_of_child(p.first), p.second.get());
+    }
+  }
+  if (!include_nested_components) {
+    return ret;
+  }
+  for (const auto& child : children) {
+    const auto child_ret =
+        child->get_unconnected_ports(include_nested_components);
+    ret.insert(ret.end(), child_ret.begin(), child_ret.end());
+  }
+  return ret;
+}
+
 InitializationStatus Module::log_setup(const std::filesystem::path& out_file) {
   logger = {};
   return logger.initialize(out_file);

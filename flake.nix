@@ -57,34 +57,6 @@
             ctest --output-on-failure
           '';
         };
-        Simo = pkgs.clangStdenv.mkDerivation {
-          pname = "Simo";
-          version = "0.0.1";
-          src = ./.;
-
-          nativeBuildInputs = with pkgs; [
-            # Real build dependencies
-            cmake
-            ninja
-            doxygen
-          ];
-
-          buildInputs = with pkgs; [
-            boost
-            glaze
-          ];
-
-          cmakeFlags = [
-            "-DPORTABLE_BUILD=ON"
-            "-DENABLE_RELEASE_LTO=OFF"
-            "-DCMAKE_CXX_SCAN_FOR_MODULES=OFF"
-          ];
-
-          doCheck = true;
-          checkPhase = ''
-            ctest --output-on-failure
-          '';
-        };
 
         derivationAttributes = {
           default = pkgs.clangStdenv.mkDerivation SimoBaseAttributes;
@@ -114,7 +86,7 @@
                 llvmPackages.llvm
               ];
               shellHook = ''
-                		  export SHELL="${pkgs.bashInteractive}/bin/bash"
+                  export SHELL="${pkgs.bashInteractive}/bin/bash"
               '';
             };
       }

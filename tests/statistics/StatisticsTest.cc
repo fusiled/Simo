@@ -37,6 +37,8 @@ class NamedPort final : public Simo::Port {
   [[nodiscard]] bool connect(Simo::Port* other) override {
     return other != nullptr;
   }
+
+  [[nodiscard]] bool connected() const override { return false; }
 };
 
 class StatisticRecordingModule final : public Simo::Module {

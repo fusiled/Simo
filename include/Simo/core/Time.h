@@ -161,6 +161,22 @@ struct from<Format, Time> {
   }
 };
 
+template <>
+struct from<YAML, Time> {
+  template <auto Opts>
+  static void op(Time& value, is_context auto&& ctx, auto&& it, auto end) {
+    auto wrapper = custom_t{value,
+                            [](Time& output, TimeValue input) {
+                              output = Time{input.time, input.unit};
+                            },
+                            [](const Time& input) {
+                              return TimeValue{.time = input.to_picoseconds(),
+                                               .unit = Time::Unit::PS};
+                            }};
+    from<YAML, decltype(wrapper)>::template op<Opts>(wrapper, ctx, it, end);
+  }
+};
+
 template <unsigned int Format>
 struct to<Format, Time> {
   template <auto Opts>

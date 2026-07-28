@@ -34,3 +34,4 @@ simulation:
   time:
     time: 100
     unit: NS
+  dump_parameters_path: "parameters_dump.yaml"

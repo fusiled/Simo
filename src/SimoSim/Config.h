@@ -18,6 +18,7 @@
 #define SIMO_CONFIG_HH
 #include <Simo/Simo.h>
 
+#include <filesystem>
 #include <glaze/json/generic.hpp>
 #include <string>
 #include <vector>
@@ -47,6 +48,7 @@ namespace SimoSim::Config {
 
 struct SimulationInfo {
   Simo::Time time;
+  std::optional<std::string> dump_parameters_path;
 };
 
 struct Config {

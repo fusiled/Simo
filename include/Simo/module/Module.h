@@ -78,6 +78,11 @@ class SIMO_PUBLIC Parameters {
   [[nodiscard]] std::optional<Parameters> get_subtree(
       const std::string& name) const;
 
+  template <typename Function>
+  void visit(Function f) {
+    trie.visit(f);
+  }
+
  protected:
   Parameter::ParameterTrie trie;
   std::string name_;

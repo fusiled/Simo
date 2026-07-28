@@ -14,13 +14,20 @@
 
 #define BOOST_TEST_MODULE SimoTimePeriod
 #include <glaze/glaze.hpp>
+#include <glaze/yaml.hpp>
 #include <sstream>
+#include <string>
 #include <unordered_set>
 
 #include "Simo/Simo.h"
 #include "support/BoostInclude.h"
 
 namespace Simo::Tests {
+struct TimeWithFollowingMember {
+  Time time;
+  std::string label;
+};
+
 BOOST_AUTO_TEST_CASE(TimeUnitConversions) {
   using Simo::Time;
 
@@ -110,5 +117,20 @@ BOOST_AUTO_TEST_CASE(TimeJsonSerializationAndParsing) {
       glz::read_json(unchanged, R"({"time":"bad","unit":"PS"})");
   BOOST_CHECK(invalid_error);
   BOOST_CHECK_EQUAL(unchanged.to_picoseconds(), 99U);
+}
+
+BOOST_AUTO_TEST_CASE(TimeYamlParsingPreservesParentMapping) {
+  TimeWithFollowingMember parsed;
+  constexpr std::string_view yaml = R"(time:
+  time: 7
+  unit: NS
+label: parsed
+)";
+
+  const auto parse_error = glz::read_yaml(parsed, yaml);
+
+  BOOST_CHECK(!parse_error);
+  BOOST_CHECK_EQUAL(parsed.time.to_picoseconds(), 7'000U);
+  BOOST_CHECK_EQUAL(parsed.label, "parsed");
 }
 }  // namespace Simo::Tests

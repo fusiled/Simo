@@ -19,6 +19,7 @@
 #include <Simo/compiler/Compiler.h>
 
 #include <ranges>
+#include <string_view>
 #include <unordered_map>
 
 #include "Parameter.h"
@@ -106,7 +107,7 @@ class SIMO_PUBLIC ParameterTrie {
   template <typename Function>
   [[nodiscard]]
   bool all(Function f) const {
-    if (value != nullptr && value->has_value() && !f(*value)) {
+    if (value != nullptr && !f(*value)) {
       return false;
     }
     for (const auto& snd : children | std::views::values) {
@@ -115,6 +116,30 @@ class SIMO_PUBLIC ParameterTrie {
       }
     }
     return true;
+  }
+
+  /// Use function on all the elements of the trie
+  /// The function must accept a T* argument
+  template <typename Function>
+  void visit(Function f) const {
+    visit_impl("", f);
+  }
+
+  template <typename Function>
+  void visit_impl(std::string_view name, Function f) const {
+    if (value != nullptr) {
+      if (!value->has_value()) {
+        f(name, nullptr);
+      } else {
+        f(name, value.get());
+      }
+    }
+    for (const auto& [child_name, sub_tree] : children) {
+      std::string sub_tree_name =
+          (name.empty() ? "" : std::string(name) + PARAMETER_NODE_SEPARATOR) +
+          child_name;
+      sub_tree.visit_impl(sub_tree_name, f);
+    }
   }
 
   std::unique_ptr<Parameter> value;

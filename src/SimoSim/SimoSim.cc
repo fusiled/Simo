@@ -17,7 +17,9 @@
 #include <Simo/Simo.h>
 #include <Simo/module/core/CoreModules.h>
 
+#include <expected>
 #include <filesystem>
+#include <fstream>
 #include <glaze/yaml.hpp>
 #include <iostream>
 #include <optional>
@@ -88,6 +90,60 @@ void print_system_ports(
   }
 }
 
+struct ParamDumpPair {
+  std::string name;
+  glz::generic_u64 param;
+};
+
+void dump_parameters(
+    const std::unordered_map<ModuleName, ModuleParameterPair>& module_map,
+    std::filesystem::path dump_path) {
+  std::ofstream out_file(dump_path);
+  if (!out_file.is_open()) {
+    std::cout << "Cannot open file " << dump_path << " to dump parameters\n";
+    return;
+  }
+  std::vector<ParamDumpPair> vect;
+  for (const auto& [module_name, module_param_pair] : module_map) {
+    const auto& [module, params] = module_param_pair;
+    params->visit([&module, &vect](std::string_view name,
+                                   Simo::Parameter::Parameter* param) {
+      const auto param_wrapper = param->value_to_generic();
+      if (!param_wrapper) {
+        std::cerr << param_wrapper.error() << "\n";
+        return;
+      }
+      vect.emplace_back(std::string(module->name()) + "/" + name,
+                        param_wrapper.value());
+    });
+    if (auto ec = glz::write_file_yaml(vect, dump_path.string())) {
+      std::cerr << "Error when dumping YAML parameters at " << dump_path
+                << " :\n";
+      std::cerr << glz::format_error(ec) << "\n";
+      return;
+    }
+  }
+}
+
+std::expected<SimoSim::Config::Config, std::string> read_config(
+    std::filesystem::path config_path) {
+  std::ifstream in_file(config_path);
+  if (!in_file.is_open()) {
+    return std::unexpected(std::format(
+        "Cannot open file {} to read configuration", config_path.c_str()));
+  }
+  std::stringstream buffer;
+  buffer << in_file.rdbuf();
+  std::string config_str = buffer.str();
+  SimoSim::Config::Config cfg;
+  if (auto ec = glz::read_yaml(cfg, config_str)) {
+    return std::unexpected(
+        std::format("Error during YAML config parsing of file {} :\n{}",
+                    config_path.c_str(), glz::format_error(ec, config_str)));
+  }
+  return cfg;
+}
+
 int main(const int argc, char* argv[]) {
   std::filesystem::path config_path;
   std::vector<std::string> collection_search_paths;
@@ -102,7 +158,7 @@ int main(const int argc, char* argv[]) {
       ->check(CLI::ExistingFile);
   app.add_option(
          "--search-path", collection_search_paths,
-         "directory where to look for shared object containing collections")
+         "directory where to look for hared object containing collections")
       ->check(CLI::ExistingDirectory);
   app.add_flag("-v,--verbose", verbosity,
                "Increase verbosity level (e.g., -v, -vv, -vvv)");
@@ -153,13 +209,15 @@ int main(const int argc, char* argv[]) {
     }
   }
 
-  SimoSim::Config::Config cfg;
-  if (auto ec = glz::read_file_yaml(cfg, config_path.c_str())) {
-    std::cerr << "Error during YAML config parsing of file " << config_path
-              << " :\n";
-    std::cerr << glz::format_error(ec) << "\n";
+  auto expected_cfg = read_config(config_path);
+  if (!expected_cfg.has_value()) {
+    std::cerr << expected_cfg.error();
     return INVALID_CONFIG_FILE;
   }
+  SimoSim::Config::Config cfg = expected_cfg.value();
+
+  const std::filesystem::path dump_parameters_path =
+      cfg.simulation.dump_parameters_path.value_or("");
 
   std::vector<std::pair<ModuleName, ModuleType>> unrecognized_module_types;
   std::vector<ModuleName> duplicate_module_names;
@@ -219,6 +277,10 @@ int main(const int argc, char* argv[]) {
   if (!ctx.initialize()) {
     std::cerr << "Failed to initialize the simulation\n";
     return INITIALIZATION_FAILED;
+  }
+
+  if (!dump_parameters_path.empty()) {
+    dump_parameters(module_map, dump_parameters_path);
   }
 
   if (print_ports) {

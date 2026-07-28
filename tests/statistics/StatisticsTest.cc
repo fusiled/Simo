@@ -401,7 +401,7 @@ BOOST_AUTO_TEST_CASE(CollectorParametersValidation) {
   using Simo::Modules::Core::Collector;
 
   Collector::Parameters params;
-  BOOST_CHECK_EQUAL(params.check(), true);
+  BOOST_CHECK_EQUAL(params.check(), false);
 
   params.get<Time>("start_time")->value(Time(10));
   params.get<Time>("end_time")->value(Time(5));

@@ -55,9 +55,15 @@ class Parameter {
     return self;
   }
 
+  /// Set stored value from glaze generic representation
   [[nodiscard]]
   virtual std::expected<Parameter*, std::string> value_from_generic(
       const glz::generic_u64& glz_value) = 0;
+
+  /// Produce glaze generic representation of the value
+  [[nodiscard]]
+  virtual std::expected<glz::generic_u64, std::string> value_to_generic()
+      const = 0;
 
  protected:
   bool has_value_ = false;
@@ -99,6 +105,16 @@ class ParameterTyped : public Parameter {
     }
     has_value_ = true;
     return this;
+  }
+
+  std::expected<glz::generic_u64, std::string> value_to_generic()
+      const override {
+    if (!has_value()) {
+      return glz::generic_u64(nullptr);
+    }
+    glz::generic_u64 out;
+    out = value_;
+    return out;
   }
 
   [[nodiscard]] T value() const { return value_; }
